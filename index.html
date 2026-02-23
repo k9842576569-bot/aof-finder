@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>AOF Finder v6 - SUSINFO [BUILD 015]</title>
+<title>AOF Finder v6 - SUSINFO [BUILD 016]</title>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Segoe UI',Tahoma,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#0f3460 100%);min-height:100vh;display:flex;justify-content:center;padding:12px 10px 30px;}
@@ -316,7 +316,7 @@ textarea:focus{border-color:#2196F3;}
   <div class="header" id="mainHeader" onclick="headerTap()">
     <h1>🔍 AOF Finder v6</h1>
     <p>SUSINFO — World Class Edition</p>
-    <p style="font-size:10px;color:#2196F3;font-weight:800;margin-top:2px;">BUILD 015 • 23-Feb-2026</p>
+    <p style="font-size:10px;color:#2196F3;font-weight:800;margin-top:2px;">BUILD 016 • 23-Feb-2026</p>
     <div class="tap-hint" id="tapHint"></div>
   </div>
   <div class="sync-banner" id="syncBanner"></div>
@@ -360,7 +360,7 @@ textarea:focus{border-color:#2196F3;}
       <div id="historyList"><div class="history-empty">No searches yet</div></div>
     </div>
   </div>
-  <div class="footer">Developed by <strong>SUSINFO</strong> • AOF Finder v6.0 • <strong style="color:#2196F3;">BUILD 015</strong></div>
+  <div class="footer">Developed by <strong>SUSINFO</strong> • AOF Finder v6.0 • <strong style="color:#2196F3;">BUILD 016</strong></div>
   <button onclick="openAdminPin()" style="width:100%;margin-top:8px;padding:12px;border:2px dashed #ccc;border-radius:12px;background:#f8f9fa;color:#bbb;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;">⚙️ SYSTEM CONFIG</button>
 </div>
 
@@ -577,7 +577,7 @@ textarea:focus{border-color:#2196F3;}
     </div>
     <div class="settings-section">
       <div class="settings-section-title">ℹ️ App Info</div>
-      <div class="setting-row"><span class="setting-label">Version</span><span class="setting-value">v6.0 BUILD 015</span></div>
+      <div class="setting-row"><span class="setting-label">Version</span><span class="setting-value">v6.0 BUILD 016</span></div>
       <div class="setting-row"><span class="setting-label">Developer</span><span class="setting-value">SUSINFO</span></div>
       <div class="setting-row"><span class="setting-label">Max Records</span><span class="setting-value">2,00,000</span></div>
       <div class="setting-row"><span class="setting-label">Security</span><span class="setting-value">Device Approval</span></div>
@@ -701,40 +701,71 @@ function getDeviceId(){
 // ============================================================
 function checkActivation(){
   const devId=getDeviceId();
-  document.getElementById('actDeviceId').textContent=devId;
+  const actEl=document.getElementById('actDeviceId');
+  if(actEl)actEl.textContent=devId;
 
-  // If NO Google Sheet URL set → skip security, auto approve
-  // Admin must set up sheet URL first via SYSTEM CONFIG
+  // If NO Google Sheet URL → skip security
   const sheetUrl=localStorage.getItem('aofSheetUrl')||'';
   if(!sheetUrl){
-    // No security set up yet — let everyone in
     hideActivationScreen();
     return;
   }
 
-  // Check with Google Sheet
-  document.getElementById('actChecking').textContent='🔄 Checking activation...';
-  fetch(sheetUrl+'?action=check&deviceId='+encodeURIComponent(devId),{signal:AbortSignal.timeout(8000)})
-    .then(r=>r.json())
-    .then(data=>{
-      document.getElementById('actChecking').textContent='';
-      if(data.status==='approved'){
-        hideActivationScreen();
-      }else if(data.status==='blocked'){
-        showBlockedScreen();
-      }else{
-        // Register as pending
-        registerDevice(devId,sheetUrl);
-        showActivationScreen();
-      }
+  // Check cached status first — show app immediately
+  const cached=localStorage.getItem('aofActivationStatus');
+  if(cached==='approved'){
+    hideActivationScreen();
+    // Recheck in background silently
+    checkActivationBackground(devId,sheetUrl);
+    return;
+  }
+
+  // New device — check with 5 second timeout only
+  const controller=new AbortController();
+  const timer=setTimeout(()=>{
+    controller.abort();
+    // Timeout — allow access, check later
+    hideActivationScreen();
+  },5000);
+
+  fetch(sheetUrl+'?action=check&deviceId='+encodeURIComponent(devId),{signal:controller.signal,redirect:'follow'})
+    .then(function(r){return r.text();})
+    .then(function(text){
+      clearTimeout(timer);
+      try{
+        var data=JSON.parse(text);
+        if(data.status==='blocked'){
+          showBlockedScreen();
+        }else if(data.status==='approved'){
+          localStorage.setItem('aofActivationStatus','approved');
+          hideActivationScreen();
+        }else{
+          registerDevice(devId,sheetUrl);
+          showActivationScreen();
+        }
+      }catch(e){hideActivationScreen();}
     })
-    .catch(()=>{
-      // Cannot reach server — check cache
-      document.getElementById('actChecking').textContent='';
-      const cached=localStorage.getItem('aofActivationStatus');
-      if(cached==='approved')hideActivationScreen();
-      else hideActivationScreen(); // Allow access if cannot check
+    .catch(function(){
+      clearTimeout(timer);
+      hideActivationScreen();
     });
+}
+
+function checkActivationBackground(devId,sheetUrl){
+  fetch(sheetUrl+'?action=check&deviceId='+encodeURIComponent(devId),{redirect:'follow'})
+    .then(function(r){return r.text();})
+    .then(function(text){
+      try{
+        var data=JSON.parse(text);
+        if(data.status==='blocked'){
+          localStorage.setItem('aofActivationStatus','blocked');
+          showBlockedScreen();
+        }else if(data.status==='approved'){
+          localStorage.setItem('aofActivationStatus','approved');
+        }
+      }catch(e){}
+    })
+    .catch(function(){});
 }
 
 function showActivationScreen(){
