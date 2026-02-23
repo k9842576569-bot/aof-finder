@@ -2,234 +2,1957 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AOF Finder v6 - </title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="AOF Finder">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>AOF Finder v6 - SUSINFO [BUILD 015]</title>
 <style>
-
-body{
-  font-family: Arial;
-  background:#f4f6f9;
-  margin:0;
-  padding:20px;
-}
-
-.container{
-  max-width:800px;
-  margin:auto;
-  background:white;
-  padding:20px;
-  border-radius:10px;
-  box-shadow:0 0 10px rgba(0,0,0,0.1);
-}
-
-h2{
-  margin-top:0;
-}
-
-input{
-  width:100%;
-  padding:10px;
-  margin:5px 0;
-}
-
-button{
-  padding:10px;
-  margin:5px 0;
-  border:none;
-  border-radius:5px;
-  cursor:pointer;
-}
-
-.save{
-  background:#28a745;
-  color:white;
-}
-
-.test{
-  background:#007bff;
-  color:white;
-}
-
-.refresh{
-  background:#007bff;
-  color:white;
-  width:100%;
-}
-
-.block{
-  background:#dc3545;
-  color:white;
-}
-
-.connected{
-  background:#28a745;
-  color:white;
-  padding:10px;
-  margin-top:10px;
-}
-
-.device{
-  border:1px solid #ccc;
-  padding:10px;
-  margin:5px 0;
-  border-radius:5px;
-}
-
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#0f3460 100%);min-height:100vh;display:flex;justify-content:center;padding:12px 10px 30px;}
+.container{background:#fff;border-radius:22px;padding:22px 18px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.4);}
+.header{text-align:center;margin-bottom:16px;cursor:pointer;user-select:none;}
+.header h1{font-size:21px;font-weight:800;color:#1a1a2e;}
+.header p{font-size:12px;color:#888;}
+.load-section{margin-bottom:20px;}
+.load-type{display:flex;gap:8px;margin:12px 0;background:#f8f9fa;padding:8px;border-radius:12px;}
+.load-type input[type="radio"]{display:none;}
+.load-type label{flex:1;text-align:center;padding:12px 8px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700;}
+.load-type input[type="radio"]:checked+label{background:linear-gradient(135deg,#2196F3,#1565C0);color:white;}
+textarea{width:100%;height:120px;padding:12px;border:2px solid #e0e0e0;border-radius:12px;font-size:13px;font-family:monospace;resize:vertical;outline:none;color:#333;}
+textarea:focus{border-color:#2196F3;}
+.btn{width:100%;padding:15px;margin:7px 0;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;}
+.btn:active{transform:scale(.97);}
+.btn-bulk{background:linear-gradient(135deg,#FF9800,#F57C00);color:#fff;display:block;text-align:center;}
+.btn-load{background:linear-gradient(135deg,#2196F3,#1565C0);color:#fff;}
+.btn-exact{background:linear-gradient(135deg,#4CAF50,#2e7d32);color:#fff;}
+.btn-ai{background:linear-gradient(135deg,#9C27B0,#6a1b9a);color:#fff;}
+.btn-camera{background:linear-gradient(135deg,#00897B,#004D40);color:#fff;}
+.btn-hands{background:linear-gradient(135deg,#E91E63,#880E4F);color:#fff;}
+.btn-mic{background:linear-gradient(135deg,#FF5722,#BF360C);color:#fff;}
+.btn-report{background:linear-gradient(135deg,#1976D2,#0D47A1);color:#fff;}
+.btn-notfound{background:linear-gradient(135deg,#F44336,#B71C1C);color:#fff;}
+.btn-settings{background:linear-gradient(135deg,#607D8B,#263238);color:#fff;}
+.btn-instant{background:linear-gradient(135deg,#FF6F00,#E65100);color:#fff;}
+.stats{text-align:center;font-size:13px;color:#4CAF50;font-weight:700;padding:6px 0;}
+#inputSection{display:none;}
+#accountInput{width:100%;padding:16px;margin:8px 0;border:3px solid #4CAF50;border-radius:12px;font-size:20px;text-align:center;font-weight:800;font-family:monospace;letter-spacing:3px;outline:none;}
+#result{padding:24px 16px;margin:12px 0;border-radius:16px;font-size:26px;font-weight:800;text-align:center;min-height:90px;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#f7f7f7;color:#bbb;border:3px solid #e8e8e8;}
+#result .sub{font-size:13px;font-weight:500;opacity:.75;}
+.r-found{background:linear-gradient(135deg,#d4edda,#c3e6cb)!important;color:#155724!important;border-color:#28a745!important;}
+.r-miss{background:linear-gradient(135deg,#f8d7da,#f5c6cb)!important;color:#721c24!important;border-color:#dc3545!important;}
+.r-ai{background:linear-gradient(135deg,#f3e5f5,#e1bee7)!important;color:#4a148c!important;border-color:#9C27B0!important;}
+.file-input{display:none;}
+.footer{text-align:center;margin-top:18px;padding:10px;background:#f8f9fa;border-radius:10px;font-size:11px;color:#888;}
+.footer strong{color:#1a1a2e;font-size:12px;}
+/* LOADING */
+#loadingOverlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(26,26,46,0.92);z-index:99999;flex-direction:column;align-items:center;justify-content:center;}
+#loadingOverlay.active{display:flex;}
+.spinner{width:60px;height:60px;border:6px solid rgba(255,255,255,0.2);border-top:6px solid #2196F3;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:16px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-text{color:#fff;font-size:14px;font-weight:700;text-align:center;padding:0 20px;}
+/* ACTIVATION SCREEN */
+#activationScreen{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#1a1a2e,#0f3460);z-index:88888;flex-direction:column;align-items:center;justify-content:center;padding:30px;}
+#activationScreen.active{display:flex;}
+.act-card{background:#fff;border-radius:22px;padding:30px 24px;width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.5);}
+.act-icon{font-size:60px;margin-bottom:16px;}
+.act-title{font-size:22px;font-weight:800;color:#1a1a2e;margin-bottom:8px;}
+.act-subtitle{font-size:13px;color:#888;margin-bottom:20px;line-height:1.6;}
+.act-divider{height:2px;background:#f0f0f0;margin:16px 0;}
+.act-contact-box{background:linear-gradient(135deg,#e3f2fd,#bbdefb);border-radius:14px;padding:16px;margin:12px 0;}
+.act-contact-title{font-size:11px;font-weight:800;color:#1565C0;margin-bottom:8px;text-transform:uppercase;}
+.act-name{font-size:18px;font-weight:800;color:#1a1a2e;margin-bottom:4px;}
+.act-phone{font-size:22px;font-weight:800;color:#2196F3;letter-spacing:2px;}
+.act-phone-btn{display:block;width:100%;padding:14px;background:linear-gradient(135deg,#4CAF50,#2e7d32);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:800;cursor:pointer;margin-top:12px;text-decoration:none;}
+.act-device-box{background:#f8f9fa;border-radius:10px;padding:10px;margin-top:12px;}
+.act-device-label{font-size:10px;color:#888;font-weight:700;text-transform:uppercase;}
+.act-device-id{font-size:14px;font-weight:800;color:#1a1a2e;font-family:monospace;letter-spacing:1px;}
+.act-note{font-size:11px;color:#4CAF50;font-weight:700;margin-top:12px;}
+.act-retry{display:block;width:100%;padding:12px;background:linear-gradient(135deg,#2196F3,#1565C0);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;margin-top:8px;}
+/* SAVED INFO BAR */
+.saved-info-bar{background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border:2px solid #4CAF50;border-radius:12px;padding:10px 14px;margin-bottom:12px;display:none;}
+.saved-info-bar.show{display:block;}
+.sib-top{display:flex;justify-content:space-between;align-items:center;}
+.sib-count{font-size:15px;font-weight:800;color:#2e7d32;}
+.sib-settings{font-size:11px;color:#1565C0;cursor:pointer;font-weight:700;background:none;border:none;}
+.sib-date{font-size:11px;color:#555;margin-top:3px;}
+/* SYNC BANNER */
+.sync-banner{background:linear-gradient(135deg,#e3f2fd,#bbdefb);border:2px solid #2196F3;border-radius:10px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#1565C0;font-weight:700;display:none;text-align:center;}
+.sync-banner.show{display:block;}
+/* HISTORY */
+.history-section{margin-top:10px;background:#f8f9fa;border-radius:12px;padding:10px 12px;}
+.history-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.history-head span{font-size:12px;font-weight:800;color:#555;}
+.history-clear{font-size:11px;color:#e53935;cursor:pointer;font-weight:700;background:none;border:none;}
+.history-item{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #eee;font-size:11px;}
+.history-item:last-child{border-bottom:none;}
+.hi-num{font-family:monospace;font-weight:800;color:#1a1a2e;font-size:12px;}
+.hi-method{color:#888;font-size:10px;}
+.hi-time{color:#aaa;font-size:10px;}
+.hi-found{color:#28a745;font-weight:800;}
+.hi-miss{color:#dc3545;font-weight:800;}
+.history-empty{font-size:11px;color:#aaa;text-align:center;padding:6px 0;}
+/* DUPLICATE WARNING */
+.dup-warning{background:#fff8e1;border:2px solid #FFC107;border-radius:10px;padding:8px 12px;margin:6px 0;font-size:11px;color:#e65100;font-weight:700;display:none;}
+.dup-warning.show{display:block;}
+/* FULLSCREEN */
+.fullscreen{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#fff;z-index:9999;flex-direction:column;overflow-y:auto;}
+.fullscreen.active{display:flex;}
+.fs-header{background:linear-gradient(135deg,#1a1a2e,#0f3460);padding:14px 16px 12px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.fs-back{background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:18px;font-weight:700;border-radius:8px;padding:6px 12px;cursor:pointer;}
+.fs-title-wrap{flex:1;}
+.fs-title{font-size:17px;font-weight:800;color:#fff;}
+.fs-subtitle{font-size:10px;color:#90caf9;}
+.fs-badge{background:rgba(255,255,255,0.15);border-radius:10px;padding:6px 10px;text-align:center;font-size:10px;color:#fff;font-weight:700;line-height:1.6;white-space:nowrap;}
+.fs-body{padding:14px;flex:1;}
+/* CAMERA */
+.cam-viewfinder-wrap{background:#000;position:relative;flex-shrink:0;height:220px;overflow:hidden;}
+#camVideo,#instVideo{width:100%;height:100%;object-fit:cover;}
+.cam-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
+.scan-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:82%;height:65%;border:2px solid rgba(33,150,243,0.7);border-radius:8px;}
+.sf-corner{position:absolute;width:20px;height:20px;border-color:#2196F3;border-style:solid;}
+.sf-corner.tl{top:-2px;left:-2px;border-width:3px 0 0 3px;border-radius:4px 0 0 0;}
+.sf-corner.tr{top:-2px;right:-2px;border-width:3px 3px 0 0;border-radius:0 4px 0 0;}
+.sf-corner.bl{bottom:-2px;left:-2px;border-width:0 0 3px 3px;border-radius:0 0 0 4px;}
+.sf-corner.br{bottom:-2px;right:-2px;border-width:0 3px 3px 0;border-radius:0 0 4px 0;}
+.scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#2196F3,transparent);animation:scanMove 2s ease-in-out infinite;}
+.inst-scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#FF6F00,transparent);animation:scanMove 2s ease-in-out infinite;}
+@keyframes scanMove{0%,100%{top:10%;opacity:0.4;}50%{top:85%;opacity:1;}}
+.cam-hint-text{position:absolute;bottom:8px;width:100%;text-align:center;font-size:11px;color:rgba(255,255,255,0.8);font-weight:600;}
+.ocr-mode-badge{position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.7);color:#fff;font-size:9px;font-weight:700;padding:3px 8px;border-radius:10px;}
+.countdown-badge{position:absolute;top:8px;left:8px;background:rgba(255,111,0,0.85);color:#fff;font-size:12px;font-weight:800;padding:4px 10px;border-radius:10px;}
+#camCanvas,#instCanvas{display:none;}
+.cam-controls-row{display:flex;gap:6px;padding:8px 12px;background:#1a1a2e;flex-shrink:0;align-items:center;}
+.ctrl-btn{flex:1;padding:9px 4px;border-radius:8px;font-size:10px;font-weight:800;color:#fff;background:rgba(255,255,255,0.12);border:none;cursor:pointer;text-align:center;line-height:1.5;}
+.ctrl-btn.on{background:rgba(33,150,243,0.5);color:#90caf9;}
+.ctrl-btn.snap-btn{background:linear-gradient(135deg,#2196F3,#1565C0);flex:1.4;font-size:13px;}
+.ctrl-btn.inst-stop{background:linear-gradient(135deg,#e53935,#b71c1c);flex:1.4;font-size:13px;}
+.ctrl-btn:active{transform:scale(0.95);}
+.zoom-row{display:flex;align-items:center;gap:8px;padding:7px 14px;background:#0f3460;flex-shrink:0;}
+.zoom-lbl{font-size:11px;color:#90caf9;font-weight:800;}
+#zoomSlider,#instZoomSlider{flex:1;accent-color:#2196F3;cursor:pointer;}
+.zoom-val{font-size:11px;color:#fff;font-weight:800;min-width:24px;}
+.ocr-status{text-align:center;padding:8px;font-size:12px;font-weight:700;border-radius:8px;margin-bottom:8px;display:none;}
+.ocr-status.scanning{background:#fff3e0;color:#e65100;display:block;animation:pulse 1s ease-in-out infinite;}
+.ocr-status.done{background:#e8f5e9;color:#2e7d32;display:block;}
+.ocr-status.error{background:#fce4ec;color:#c62828;display:block;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
+.extracted-section{background:#e3f2fd;border:2px solid #2196F3;border-radius:12px;padding:12px;margin-bottom:10px;}
+.extracted-title{font-size:11px;font-weight:800;color:#1565C0;margin-bottom:8px;}
+.extracted-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.ext-lbl{font-size:10px;color:#555;font-weight:700;width:82px;flex-shrink:0;}
+.ext-input{flex:1;padding:7px 10px;border:2px solid #90caf9;border-radius:8px;font-family:monospace;font-size:14px;font-weight:800;color:#1a1a2e;letter-spacing:1px;outline:none;background:#fff;}
+.ext-input:focus{border-color:#2196F3;}
+.btn-search-both{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#4CAF50,#2e7d32);color:#fff;font-size:16px;font-weight:800;cursor:pointer;margin-bottom:10px;}
+.btn-search-both:active{transform:scale(0.97);}
+#camResult,#instResult{padding:20px 16px;border-radius:16px;font-size:26px;font-weight:800;text-align:center;min-height:90px;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#f7f7f7;color:#bbb;border:3px solid #e8e8e8;margin-bottom:10px;}
+#camResult .sub,#instResult .sub{font-size:11px;font-weight:500;opacity:.8;margin-top:4px;}
+#continuousStatus{display:none;text-align:center;font-size:11px;font-weight:700;color:#1565C0;padding:4px;background:#e3f2fd;border-radius:6px;margin-bottom:6px;}
+/* INSTANT SCAN */
+.inst-status-bar{background:#1a1a2e;padding:8px 14px;flex-shrink:0;}
+.inst-engine{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.inst-engine-label{font-size:10px;color:#90caf9;font-weight:700;}
+.inst-engines{display:flex;gap:6px;}
+.engine-dot{font-size:9px;font-weight:800;padding:3px 8px;border-radius:8px;background:rgba(255,255,255,0.1);color:#aaa;}
+.engine-dot.active{background:rgba(76,175,80,0.3);color:#4CAF50;}
+.engine-dot.waiting{background:rgba(33,150,243,0.2);color:#90caf9;}
+.engine-dot.failed{background:rgba(244,67,54,0.2);color:#ef9a9a;}
+.inst-next-scan{text-align:center;font-size:10px;color:#FF6F00;font-weight:800;}
+/* MIC */
+.mic-circle{width:110px;height:110px;border-radius:50%;background:linear-gradient(135deg,#E91E63,#880E4F);display:flex;align-items:center;justify-content:center;margin:20px auto;font-size:46px;cursor:pointer;box-shadow:0 0 0 0 rgba(233,30,99,0.4);transition:all 0.3s;}
+.mic-circle.listening{animation:micPulse 1.5s ease-in-out infinite;}
+@keyframes micPulse{0%{box-shadow:0 0 0 0 rgba(233,30,99,0.4);}70%{box-shadow:0 0 0 30px rgba(233,30,99,0);}100%{box-shadow:0 0 0 0 rgba(233,30,99,0);}}
+.mic-status{text-align:center;font-size:14px;font-weight:800;color:#333;margin-bottom:10px;}
+.mic-extracted{background:#e3f2fd;border:2px solid #2196F3;border-radius:12px;padding:12px;margin:10px 0;display:none;}
+.mic-number{font-family:monospace;font-size:26px;font-weight:800;color:#1a1a2e;text-align:center;letter-spacing:3px;}
+.mic-result{padding:20px;border-radius:16px;font-size:26px;font-weight:800;text-align:center;min-height:90px;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#f7f7f7;color:#bbb;border:3px solid #e8e8e8;margin:10px 0;}
+.mic-result .sub{font-size:12px;font-weight:500;margin-top:4px;}
+.mic-hint{text-align:center;font-size:12px;color:#888;margin:8px 0;line-height:1.7;background:#f8f9fa;border-radius:10px;padding:10px;}
+/* REPORT */
+.report-card{background:#f8f9fa;border-radius:12px;padding:14px;margin-bottom:12px;}
+.report-title{font-size:13px;font-weight:800;color:#555;margin-bottom:10px;}
+.report-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #eee;}
+.report-row:last-child{border-bottom:none;}
+.report-label{font-size:12px;color:#555;}
+.report-value{font-size:14px;font-weight:800;color:#1a1a2e;}
+.report-value.green{color:#28a745;}
+.report-value.red{color:#dc3545;}
+.export-btn{width:100%;padding:13px;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px;}
+.export-excel{background:linear-gradient(135deg,#217346,#1a5c38);color:#fff;}
+/* NOT FOUND */
+.nf-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eee;font-size:12px;}
+.nf-num{font-family:monospace;font-weight:800;color:#1a1a2e;font-size:13px;}
+.nf-meta{color:#888;font-size:10px;text-align:right;}
+/* SETTINGS */
+.settings-section{background:#f8f9fa;border-radius:12px;padding:12px 14px;margin-bottom:12px;}
+.settings-section-title{font-size:10px;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.setting-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #eee;}
+.setting-row:last-child{border-bottom:none;}
+.setting-label{font-size:13px;color:#333;font-weight:600;}
+.setting-value{font-size:11px;color:#888;}
+.setting-input{width:100%;padding:9px 10px;border:2px solid #e0e0e0;border-radius:8px;font-size:12px;font-family:monospace;outline:none;color:#333;margin-top:6px;}
+.setting-input:focus{border-color:#2196F3;}
+.setting-btn{padding:10px 14px;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;margin-top:6px;}
+.sbt-blue{background:linear-gradient(135deg,#2196F3,#1565C0);color:#fff;}
+.sbt-green{background:linear-gradient(135deg,#4CAF50,#2e7d32);color:#fff;}
+.sbt-red{background:linear-gradient(135deg,#e53935,#b71c1c);color:#fff;}
+.sbt-orange{background:linear-gradient(135deg,#FF9800,#F57C00);color:#fff;}
+.radio-group{display:flex;gap:8px;margin-top:8px;}
+.radio-opt{flex:1;text-align:center;padding:10px 6px;border-radius:8px;border:2px solid #e0e0e0;cursor:pointer;font-size:12px;font-weight:700;color:#555;}
+.radio-opt.selected{border-color:#2196F3;background:#e3f2fd;color:#1565C0;}
+.sync-status{font-size:11px;color:#4CAF50;font-weight:700;margin-top:6px;}
+/* ADMIN */
+.admin-pin-screen{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#1a1a2e,#0f3460);z-index:99998;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
+.admin-pin-screen.active{display:flex;}
+.pin-card{background:#fff;border-radius:22px;padding:30px 24px;width:100%;max-width:340px;text-align:center;}
+.pin-title{font-size:18px;font-weight:800;color:#1a1a2e;margin-bottom:6px;}
+.pin-subtitle{font-size:12px;color:#888;margin-bottom:20px;}
+.pin-dots{display:flex;justify-content:center;gap:12px;margin-bottom:20px;}
+.pin-dot{width:16px;height:16px;border-radius:50%;background:#e0e0e0;transition:all 0.2s;}
+.pin-dot.filled{background:#1a1a2e;}
+.pin-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.pin-key{padding:16px;border:none;border-radius:12px;font-size:20px;font-weight:800;cursor:pointer;background:#f8f9fa;color:#1a1a2e;}
+.pin-key:active{transform:scale(0.95);background:#e0e0e0;}
+.pin-key.del{background:#fce4ec;color:#e53935;}
+.pin-key.zero{grid-column:2;}
+.pin-cancel{width:100%;padding:12px;border:none;border-radius:10px;background:#f8f9fa;color:#888;font-size:14px;font-weight:700;cursor:pointer;}
+/* ADMIN PANEL */
+.admin-badge{display:inline-block;background:linear-gradient(135deg,#FFD700,#FFA000);color:#1a1a2e;font-size:10px;font-weight:800;padding:2px 8px;border-radius:8px;margin-left:6px;}
+.device-card{background:#fff;border:2px solid #e0e0e0;border-radius:12px;padding:12px;margin-bottom:8px;}
+.device-card.pending{border-color:#FFC107;background:#fff8e1;}
+.device-card.approved{border-color:#4CAF50;background:#e8f5e9;}
+.device-card.blocked{border-color:#e53935;background:#fce4ec;}
+.device-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.device-name{font-size:13px;font-weight:800;color:#1a1a2e;}
+.device-status{font-size:10px;font-weight:800;padding:3px 8px;border-radius:8px;}
+.status-pending{background:#FFC107;color:#1a1a2e;}
+.status-approved{background:#4CAF50;color:#fff;}
+.status-blocked{background:#e53935;color:#fff;}
+.device-info{font-size:10px;color:#888;margin-bottom:8px;}
+.device-actions{display:flex;gap:6px;}
+.dev-btn{flex:1;padding:8px;border:none;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;}
+.dev-approve{background:linear-gradient(135deg,#4CAF50,#2e7d32);color:#fff;}
+.dev-block{background:linear-gradient(135deg,#e53935,#b71c1c);color:#fff;}
+.dev-delete{background:#f8f9fa;color:#888;}
+.api-key-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.api-key-label{font-size:11px;font-weight:800;color:#555;width:70px;flex-shrink:0;}
+.api-key-status{font-size:10px;font-weight:800;padding:2px 8px;border-radius:6px;}
+.key-active{background:#e8f5e9;color:#2e7d32;}
+.key-inactive{background:#f8f9fa;color:#aaa;}
+.api-key-input-wrap{flex:1;}
+.api-key-input-small{width:100%;padding:6px 8px;border:2px solid #e0e0e0;border-radius:6px;font-family:monospace;font-size:11px;outline:none;}
+.api-key-input-small:focus{border-color:#2196F3;}
+.usage-bar{height:6px;background:#e0e0e0;border-radius:3px;margin-top:4px;}
+.usage-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#4CAF50,#FF9800);}
+/* OFFLINE */
+#offlineBanner{display:none;background:#e53935;color:#fff;text-align:center;padding:7px;font-size:12px;font-weight:700;flex-shrink:0;}
+#offlineBanner.show{display:block;}
+.signal-warn{background:#fff3e0;border:2px solid #FF9800;border-radius:8px;padding:8px 12px;font-size:12px;color:#e65100;font-weight:700;margin-bottom:8px;display:none;}
+.signal-warn.show{display:block;}
+/* TAP COUNTER */
+.tap-hint{font-size:11px;color:#2196F3;text-align:center;margin-top:4px;height:16px;font-weight:700;transition:all 0.2s;}
 </style>
-
 </head>
 <body>
 
-<div class="container">
+<!-- LOADING -->
+<div id="loadingOverlay"><div class="spinner"></div><div class="loading-text" id="loadingText">Loading...</div></div>
 
-<h2>Google Sheet Connection</h2>
+<!-- ACTIVATION SCREEN -->
+<div id="activationScreen">
+  <div class="act-card">
+    <div class="act-icon">🔒</div>
+    <div class="act-title">App Activation Required</div>
+    <div class="act-subtitle">Your device needs to be activated by the administrator before you can use this app.</div>
+    <div class="act-divider"></div>
+    <div class="act-contact-box">
+      <div class="act-contact-title">📞 Contact Administrator</div>
+      <div class="act-name">👤 SureshKumar</div>
+      <div class="act-phone">98425 76569</div>
+      <a href="tel:9842576569" class="act-phone-btn">📞 CALL NOW</a>
+    </div>
+    <div class="act-device-box">
+      <div class="act-device-label">Your Device ID (tell admin)</div>
+      <div class="act-device-id" id="actDeviceId">Generating...</div>
+    </div>
+    <div class="act-note">✅ This is a one-time process only!</div>
+    <button class="act-retry" onclick="checkActivation()">🔄 CHECK ACTIVATION</button>
+  </div>
+</div>
 
-<input type="text" id="scriptURL" placeholder="Paste Google Script URL">
+<!-- ADMIN PIN SCREEN -->
+<div class="admin-pin-screen" id="adminPinScreen">
+  <div class="pin-card">
+    <div class="pin-title">👑 Admin Access</div>
+    <div class="pin-subtitle">Enter your 4-digit PIN</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="pin-keypad">
+      <button class="pin-key" onclick="pinKey('1')">1</button>
+      <button class="pin-key" onclick="pinKey('2')">2</button>
+      <button class="pin-key" onclick="pinKey('3')">3</button>
+      <button class="pin-key" onclick="pinKey('4')">4</button>
+      <button class="pin-key" onclick="pinKey('5')">5</button>
+      <button class="pin-key" onclick="pinKey('6')">6</button>
+      <button class="pin-key" onclick="pinKey('7')">7</button>
+      <button class="pin-key" onclick="pinKey('8')">8</button>
+      <button class="pin-key" onclick="pinKey('9')">9</button>
+      <button class="pin-key del" onclick="pinDel()">⌫</button>
+      <button class="pin-key zero" onclick="pinKey('0')">0</button>
+    </div>
+    <button class="pin-cancel" onclick="closePinScreen()">Cancel</button>
+  </div>
+</div>
 
-<button class="save" onclick="saveURL()">SAVE</button>
+<!-- MAIN APP -->
+<div class="container" id="mainApp">
+  <div class="header" id="mainHeader" onclick="headerTap()">
+    <h1>🔍 AOF Finder v6</h1>
+    <p>SUSINFO — World Class Edition</p>
+    <p style="font-size:10px;color:#2196F3;font-weight:800;margin-top:2px;">BUILD 015 • 23-Feb-2026</p>
+    <div class="tap-hint" id="tapHint"></div>
+  </div>
+  <div class="sync-banner" id="syncBanner"></div>
+  <div class="saved-info-bar" id="savedInfoBar">
+    <div class="sib-top">
+      <span class="sib-count" id="savedCount">✅ 0 accounts ready!</span>
+      <button class="sib-settings" onclick="showSettings()">⚙️ Settings</button>
+    </div>
+    <div class="sib-date" id="savedDate"></div>
+  </div>
+  <div class="load-section" id="loadSection">
+    <div class="load-type">
+      <input type="radio" id="manualLoad" name="loadType" value="manual" checked onchange="toggleLoadMode()">
+      <label for="manualLoad">📝 MANUAL</label>
+      <input type="radio" id="bulkLoad" name="loadType" value="bulk" onchange="toggleLoadMode()">
+      <label for="bulkLoad">📁 BULK TXT</label>
+    </div>
+    <textarea id="accountsList" placeholder="MANUAL: Type 11-digit numbers&#10;BULK: Paste AOFMASTER.txt content"></textarea>
+    <input type="file" id="bulkFile" class="file-input" accept=".txt" onchange="handleBulkFile(event)">
+    <label for="bulkFile" class="btn btn-bulk" id="bulkBtn">📁 UPLOAD TXT FILE</label>
+    <button class="btn btn-load" onclick="loadAccounts()">🚀 LOAD ACCOUNTS</button>
+  </div>
+  <button onclick="openAdminPin()" style="width:100%;margin-top:4px;padding:10px;border:2px dashed #ccc;border-radius:12px;background:#f8f9fa;color:#aaa;font-size:11px;font-weight:700;cursor:pointer;" id="adminConfigBtn">⚙️ SYSTEM CONFIG</button>
+  <div id="inputSection">
+    <hr style="margin:10px 0;">
+    <div class="stats" id="stats"></div>
+    <div class="dup-warning" id="dupWarning"></div>
+    <input type="text" id="accountInput" placeholder="Type 11-digit → ENTER" maxlength="11" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+    <button class="btn btn-exact" onclick="checkAccount()">✅ EXACT CHECK</button>
+    <button class="btn btn-ai" onclick="aiSearch()">🧠 AI SEARCH</button>
+    <button class="btn btn-hands" onclick="openHandsFree()">🗣️ HANDS FREE</button>
+    <button class="btn btn-mic" onclick="openMic()">🎤 MIC SEARCH</button>
+    <button class="btn btn-camera" onclick="openCamera()">📷 CAMERA SEARCH</button>
+    <button class="btn btn-instant" onclick="openInstant()">⚡ INSTANT SCAN</button>
+    <button class="btn btn-report" onclick="openReport()">📊 DAILY REPORT</button>
+    <button class="btn btn-notfound" onclick="openNotFound()">📋 NOT FOUND LIST</button>
+    <button class="btn btn-settings" onclick="showSettings()">⚙️ SETTINGS</button>
+    <div id="result">Ready...</div>
+    <div class="history-section">
+      <div class="history-head"><span>📋 SEARCH HISTORY</span><button class="history-clear" onclick="clearHistory()">🗑 CLEAR</button></div>
+      <div id="historyList"><div class="history-empty">No searches yet</div></div>
+    </div>
+  </div>
+  <div class="footer">Developed by <strong>SUSINFO</strong> • AOF Finder v6.0 • <strong style="color:#2196F3;">BUILD 015</strong></div>
+  <button onclick="openAdminPin()" style="width:100%;margin-top:8px;padding:12px;border:2px dashed #ccc;border-radius:12px;background:#f8f9fa;color:#bbb;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;">⚙️ SYSTEM CONFIG</button>
+</div>
 
-<button class="test" onclick="testConnection()">TEST</button>
+<!-- CAMERA SCREEN -->
+<div id="cameraScreen" class="fullscreen">
+  <div id="offlineBanner">📵 No Internet — Using Offline OCR</div>
+  <div class="fs-header">
+    <button class="fs-back" onclick="closeCamera()">← Back</button>
+    <div class="fs-title-wrap"><div class="fs-title">📷 CAMERA SEARCH</div><div class="fs-subtitle" id="ocrModeLabel">OCR: Auto</div></div>
+    <div class="fs-badge">Checked:<span id="sessChecked">0</span><br>Found:<span id="sessFound">0</span></div>
+  </div>
+  <div class="cam-viewfinder-wrap">
+    <video id="camVideo" autoplay playsinline muted></video>
+    <canvas id="camCanvas"></canvas>
+    <div class="cam-overlay">
+      <div class="scan-frame"><div class="sf-corner tl"></div><div class="sf-corner tr"></div><div class="sf-corner bl"></div><div class="sf-corner br"></div><div class="scan-line"></div></div>
+      <div class="cam-hint-text">Point at account number → SNAP 📸</div>
+      <div class="ocr-mode-badge" id="ocrBadge">🌐 Online</div>
+    </div>
+  </div>
+  <div class="cam-controls-row">
+    <button class="ctrl-btn" id="torchBtn" onclick="toggleTorch()">🔦 TORCH<br>OFF</button>
+    <button class="ctrl-btn snap-btn" onclick="snapPhoto()">📸 SNAP</button>
+    <button class="ctrl-btn" id="contBtn" onclick="toggleContinuous()">🔁 AUTO<br>OFF</button>
+  </div>
+  <div class="zoom-row">
+    <span class="zoom-lbl">🔍 ZOOM</span>
+    <input type="range" id="zoomSlider" min="1" max="5" step="0.5" value="1" oninput="applyZoom(this.value,'cam')">
+    <span class="zoom-val" id="zoomVal">1x</span>
+  </div>
+  <div class="fs-body">
+    <div class="signal-warn" id="signalWarn"></div>
+    <div class="ocr-status" id="ocrStatus"></div>
+    <div id="continuousStatus">🔁 Continuous Mode ON — Auto scan every 4 sec</div>
+    <div class="extracted-section" id="extractedSection" style="display:none;">
+      <div class="extracted-title">📤 EXTRACTED — Edit if needed → SEARCH BOTH</div>
+      <div class="extracted-row"><span class="ext-lbl">Customer ID:</span><input type="text" id="extCustId" class="ext-input" maxlength="11" placeholder="11 digits" oninput="this.value=this.value.replace(/[^0-9]/g,'')"></div>
+      <div class="extracted-row"><span class="ext-lbl">Account No:</span><input type="text" id="extAccNo" class="ext-input" maxlength="11" placeholder="11 digits" oninput="this.value=this.value.replace(/[^0-9]/g,'')"></div>
+    </div>
+    <button class="btn-search-both" id="searchBothBtn" onclick="searchBoth()" style="display:none;">🔍 SEARCH BOTH</button>
+    <div id="camResult">Point camera &amp; snap 📷</div>
+    <div class="history-section" style="margin-top:10px;">
+      <div class="history-head"><span>📋 LAST SEARCHES</span><button class="history-clear" onclick="clearHistory()">🗑</button></div>
+      <div id="camHistoryList"><div class="history-empty">No searches yet</div></div>
+    </div>
+  </div>
+</div>
 
-<div id="status"></div>
+<!-- INSTANT SCAN SCREEN -->
+<div id="instantScreen" class="fullscreen">
+  <div class="fs-header">
+    <button class="fs-back" onclick="closeInstant()">← Back</button>
+    <div class="fs-title-wrap"><div class="fs-title">⚡ INSTANT SCAN</div><div class="fs-subtitle" id="instModeLabel">AI: Auto</div></div>
+    <div class="fs-badge">Checked:<span id="instChecked">0</span><br>Found:<span id="instFound">0</span></div>
+  </div>
+  <div class="cam-viewfinder-wrap">
+    <video id="instVideo" autoplay playsinline muted></video>
+    <canvas id="instCanvas"></canvas>
+    <div class="cam-overlay">
+      <div class="scan-frame"><div class="sf-corner tl"></div><div class="sf-corner tr"></div><div class="sf-corner bl"></div><div class="sf-corner br"></div><div class="inst-scan-line"></div></div>
+      <div class="cam-hint-text">⚡ Auto scanning every 5 seconds</div>
+      <div class="ocr-mode-badge" id="instBadge">🤖 Gemini</div>
+      <div class="countdown-badge" id="countdownBadge">5s</div>
+    </div>
+  </div>
+  <div class="inst-status-bar">
+    <div class="inst-engine">
+      <span class="inst-engine-label">AI ENGINE:</span>
+      <div class="inst-engines">
+        <span class="engine-dot" id="eng-gemini">🤖 Gemini</span>
+        <span class="engine-dot" id="eng-groq">⚡ Groq</span>
+        <span class="engine-dot" id="eng-ocr">📷 OCR</span>
+        <span class="engine-dot" id="eng-tess">📵 Offline</span>
+      </div>
+    </div>
+    <div class="inst-next-scan" id="instNextScan">⚡ Starting scan...</div>
+  </div>
+  <div class="cam-controls-row">
+    <button class="ctrl-btn" id="instTorchBtn" onclick="toggleInstTorch()">🔦 TORCH<br>OFF</button>
+    <button class="ctrl-btn inst-stop" onclick="toggleInstant()">⏹ STOP<br>SCAN</button>
+    <button class="ctrl-btn" id="instZoomBtn">🔍 ZOOM<br>1x</button>
+  </div>
+  <div class="zoom-row">
+    <span class="zoom-lbl">🔍 ZOOM</span>
+    <input type="range" id="instZoomSlider" min="1" max="5" step="0.5" value="1" oninput="applyZoom(this.value,'inst')">
+    <span class="zoom-val" id="instZoomVal">1x</span>
+  </div>
+  <div class="fs-body">
+    <div class="ocr-status" id="instOcrStatus"></div>
+    <div id="instResult">⚡ Scanning will start automatically...</div>
+    <div class="history-section" style="margin-top:10px;">
+      <div class="history-head"><span>📋 INSTANT SCAN HISTORY</span></div>
+      <div id="instHistoryList"><div class="history-empty">No scans yet</div></div>
+    </div>
+  </div>
+</div>
 
-<h2>Devices</h2>
+<!-- HANDS FREE SCREEN -->
+<div id="handsScreen" class="fullscreen">
+  <div class="fs-header">
+    <button class="fs-back" onclick="closeHandsFree()">← Back</button>
+    <div class="fs-title-wrap"><div class="fs-title">🗣️ HANDS FREE</div><div class="fs-subtitle">Speak 11 digits → Auto Search</div></div>
+  </div>
+  <div class="fs-body" style="text-align:center;">
+    <div class="mic-hint">Speak the 11-digit account number clearly in English<br><br>Example: <strong>"seven two two five nine eight one three nine two six"</strong></div>
+    <div class="mic-circle" id="handsCircle" onclick="startHandsFree()">🎙️</div>
+    <div class="mic-status" id="handsStatus">Tap mic to start listening</div>
+    <div class="mic-extracted" id="handsExtracted">
+      <div style="font-size:11px;color:#1565C0;font-weight:700;margin-bottom:6px;">🔢 EXTRACTED NUMBER:</div>
+      <div class="mic-number" id="handsNumber"></div>
+    </div>
+    <div class="mic-result" id="handsResult">Waiting for voice input...</div>
+    <div class="history-section" style="text-align:left;margin-top:10px;">
+      <div class="history-head"><span>📋 LAST SEARCHES</span></div>
+      <div id="handsHistoryList"><div class="history-empty">No searches yet</div></div>
+    </div>
+  </div>
+</div>
 
-<button class="refresh" onclick="loadDevices()">REFRESH DEVICE LIST</button>
+<!-- MIC SEARCH SCREEN -->
+<div id="micScreen" class="fullscreen">
+  <div class="fs-header">
+    <button class="fs-back" onclick="closeMic()">← Back</button>
+    <div class="fs-title-wrap"><div class="fs-title">🎤 MIC SEARCH</div><div class="fs-subtitle">Speak → Verify → Search</div></div>
+  </div>
+  <div class="fs-body" style="text-align:center;">
+    <div class="mic-hint">Speak the account number, then verify and press SEARCH</div>
+    <div class="mic-circle" id="micCircle" onclick="startMicListen()">🎤</div>
+    <div class="mic-status" id="micStatus">Tap mic to start</div>
+    <div class="mic-extracted" id="micExtracted">
+      <div style="font-size:11px;color:#1565C0;font-weight:700;margin-bottom:6px;">📤 HEARD — Edit if needed:</div>
+      <input type="text" id="micNumber" style="width:100%;padding:10px;border:2px solid #2196F3;border-radius:8px;font-family:monospace;font-size:22px;font-weight:800;text-align:center;letter-spacing:2px;outline:none;" maxlength="11" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+    </div>
+    <button onclick="searchMicNumber()" style="width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#4CAF50,#2e7d32);color:#fff;font-size:16px;font-weight:800;cursor:pointer;margin:10px 0;display:none;" id="micSearchBtn">🔍 SEARCH</button>
+    <div class="mic-result" id="micResult">Waiting for voice input...</div>
+  </div>
+</div>
 
-<div id="deviceList"></div>
+<!-- REPORT SCREEN -->
+<div id="reportScreen" class="fullscreen">
+  <div class="fs-header">
+    <button class="fs-back" onclick="closeScreen('reportScreen')">← Back</button>
+    <div class="fs-title-wrap"><div class="fs-title">📊 DAILY REPORT</div><div class="fs-subtitle" id="reportDate"></div></div>
+  </div>
+  <div class="fs-body">
+    <div class="report-card">
+      <div class="report-title">📊 TODAY'S SUMMARY</div>
+      <div class="report-row"><span class="report-label">Total Checked</span><span class="report-value" id="rptTotal">0</span></div>
+      <div class="report-row"><span class="report-label">✅ FOUND</span><span class="report-value green" id="rptFound">0</span></div>
+      <div class="report-row"><span class="report-label">❌ NOT FOUND</span><span class="report-value red" id="rptNotFound">0</span></div>
+      <div class="report-row"><span class="report-label">📈 Success Rate</span><span class="report-value" id="rptRate">0%</span></div>
+      <div class="report-row"><span class="report-label">⚡ Instant Scans</span><span class="report-value" id="rptInstant">0</span></div>
+      <div class="report-row"><span class="report-label">📷 Camera Scans</span><span class="report-value" id="rptCam">0</span></div>
+      <div class="report-row"><span class="report-label">✋ Manual Checks</span><span class="report-value" id="rptManual">0</span></div>
+      <div class="report-row"><span class="report-label">🗣️ Voice Searches</span><span class="report-value" id="rptVoice">0</span></div>
+      <div class="report-row"><span class="report-label">⚠️ Duplicates</span><span class="report-value" id="rptDup">0</span></div>
+    </div>
+    <button class="export-btn export-excel" onclick="exportReportExcel()">📥 EXPORT REPORT AS EXCEL</button>
+    <button class="export-btn" style="background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;margin-top:8px;" onclick="shareReportWhatsApp()">📲 SHARE VIA WHATSAPP</button>
+  </div>
+</div>
 
+<!-- NOT FOUND SCREEN -->
+<div id="notFoundScreen" class="fullscreen">
+  <div class="fs-header">
+    <button class="fs-back" onclick="closeScreen('notFoundScreen')">← Back</button>
+    <div class="fs-title-wrap"><div class="fs-title">📋 NOT FOUND LIST</div><div class="fs-subtitle" id="nfCount">0 records</div></div>
+    <button class="fs-back" onclick="clearNotFound()" style="font-size:11px;padding:4px 8px;">🗑 CLEAR</button>
+  </div>
+  <div class="fs-body">
+    <div id="notFoundList"><div class="history-empty">No NOT FOUND records yet</div></div>
+    <button class="export-btn export-excel" onclick="exportNotFoundExcel()" style="margin-top:10px;">📥 EXPORT NOT FOUND AS EXCEL</button>
+  </div>
+</div>
+
+<!-- SETTINGS SCREEN -->
+<div id="settingsScreen" class="fullscreen">
+  <div class="fs-header">
+    <button class="fs-back" onclick="closeScreen('settingsScreen')">← Back</button>
+    <div class="fs-title-wrap"><div class="fs-title">⚙️ SETTINGS</div><div class="fs-subtitle">AOF Finder v6.0</div></div>
+  </div>
+  <div class="fs-body">
+    <div class="settings-section">
+      <div class="settings-section-title">📂 Master File Source</div>
+      <div class="radio-group">
+        <div class="radio-opt selected" id="srcManualOpt" onclick="setFileSource('manual')">📝 Manual</div>
+        <div class="radio-opt" id="srcDriveOpt" onclick="setFileSource('drive')">🔗 Google Drive</div>
+      </div>
+      <div id="manualUploadSection" style="margin-top:10px;">
+        <input type="file" id="settingsBulkFile" class="file-input" accept=".txt" onchange="handleSettingsFile(event)">
+        <label for="settingsBulkFile" class="setting-btn sbt-orange" style="display:block;text-align:center;padding:12px;border-radius:10px;">📁 UPLOAD NEW MASTER FILE</label>
+      </div>
+      <div id="driveSection" style="margin-top:10px;display:none;">
+        <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px;">🔗 Google Drive Public Share Link:</label>
+        <input type="text" id="driveLink" class="setting-input" placeholder="Paste Google Drive share link...">
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button class="setting-btn sbt-blue" onclick="saveDriveLink()" style="flex:1;">💾 SAVE</button>
+          <button class="setting-btn sbt-green" onclick="syncFromDrive()" style="flex:1;">🔄 SYNC NOW</button>
+        </div>
+        <div class="sync-status" id="syncStatus"></div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">💾 Saved Accounts</div>
+      <div class="setting-row"><span class="setting-label">Total Accounts</span><span class="setting-value" id="settingsCount">0</span></div>
+      <div class="setting-row"><span class="setting-label">Capacity</span><span class="setting-value">2,00,000</span></div>
+      <div class="setting-row"><span class="setting-label">Last Loaded</span><span class="setting-value" id="settingsDate">Never</span></div>
+      <button class="setting-btn sbt-red" onclick="clearAccountsData()" style="margin-top:8px;width:100%;padding:12px;border-radius:10px;">🗑️ CLEAR ALL ACCOUNTS DATA</button>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">📊 Data Management</div>
+      <button class="setting-btn sbt-blue" onclick="exportHistoryExcel()" style="display:block;width:100%;padding:12px;border-radius:10px;margin-bottom:8px;">📥 EXPORT HISTORY AS EXCEL</button>
+      <button class="setting-btn sbt-red" onclick="clearHistory()" style="display:block;width:100%;padding:12px;border-radius:10px;">🗑️ CLEAR SEARCH HISTORY</button>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">ℹ️ App Info</div>
+      <div class="setting-row"><span class="setting-label">Version</span><span class="setting-value">v6.0 BUILD 015</span></div>
+      <div class="setting-row"><span class="setting-label">Developer</span><span class="setting-value">SUSINFO</span></div>
+      <div class="setting-row"><span class="setting-label">Max Records</span><span class="setting-value">2,00,000</span></div>
+      <div class="setting-row"><span class="setting-label">Security</span><span class="setting-value">Device Approval</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL SCREEN -->
+<div id="adminScreen" class="fullscreen">
+  <div class="fs-header">
+    <button class="fs-back" onclick="closeScreen('adminScreen')">← Back</button>
+    <div class="fs-title-wrap"><div class="fs-title">👑 ADMIN PANEL <span class="admin-badge">ADMIN</span></div><div class="fs-subtitle">SureshKumar — Full Control</div></div>
+  </div>
+  <div class="fs-body">
+    <!-- API KEYS -->
+    <div class="settings-section">
+      <div class="settings-section-title">🔑 AI Engine API Keys</div>
+      <div class="api-key-row">
+        <span class="api-key-label">🤖 Gemini</span>
+        <span class="api-key-status" id="geminiStatus">No Key</span>
+      </div>
+      <div class="api-key-input-wrap">
+        <input type="password" class="api-key-input-small" id="adminGeminiKey" placeholder="Paste Gemini API key...">
+        <div style="display:flex;gap:6px;margin-top:4px;">
+          <button class="setting-btn sbt-blue" onclick="saveAdminKey('gemini')" style="flex:1;padding:6px;">💾 SAVE</button>
+          <button class="setting-btn sbt-red" onclick="clearAdminKey('gemini')" style="flex:1;padding:6px;">🗑 CLEAR</button>
+        </div>
+        <div style="font-size:9px;color:#888;margin-top:2px;">Get free: aistudio.google.com → API Key</div>
+      </div>
+      <div style="margin-top:10px;"></div>
+      <div class="api-key-row">
+        <span class="api-key-label">⚡ Groq</span>
+        <span class="api-key-status" id="groqStatus">No Key</span>
+      </div>
+      <div class="api-key-input-wrap">
+        <input type="password" class="api-key-input-small" id="adminGroqKey" placeholder="Paste Groq API key...">
+        <div style="display:flex;gap:6px;margin-top:4px;">
+          <button class="setting-btn sbt-blue" onclick="saveAdminKey('groq')" style="flex:1;padding:6px;">💾 SAVE</button>
+          <button class="setting-btn sbt-red" onclick="clearAdminKey('groq')" style="flex:1;padding:6px;">🗑 CLEAR</button>
+        </div>
+        <div style="font-size:9px;color:#888;margin-top:2px;">Get free: console.groq.com → API Keys</div>
+      </div>
+      <div style="margin-top:10px;"></div>
+      <div class="api-key-row">
+        <span class="api-key-label">📷 OCR.space</span>
+        <span class="api-key-status" id="ocrStatus2">No Key</span>
+      </div>
+      <div class="api-key-input-wrap">
+        <input type="password" class="api-key-input-small" id="adminOcrKey" placeholder="Paste OCR.space API key...">
+        <div style="display:flex;gap:6px;margin-top:4px;">
+          <button class="setting-btn sbt-blue" onclick="saveAdminKey('ocr')" style="flex:1;padding:6px;">💾 SAVE</button>
+          <button class="setting-btn sbt-red" onclick="clearAdminKey('ocr')" style="flex:1;padding:6px;">🗑 CLEAR</button>
+        </div>
+        <div style="font-size:9px;color:#888;margin-top:2px;">Get free: ocr.space → Free API Key</div>
+      </div>
+      <div style="margin-top:8px;background:#e8f5e9;border-radius:8px;padding:8px;font-size:11px;color:#2e7d32;font-weight:700;">📵 Tesseract — Always ON (No key needed)</div>
+    </div>
+    <!-- CHANGE PIN -->
+    <div class="settings-section">
+      <div class="settings-section-title">🔐 Admin PIN</div>
+      <input type="password" class="setting-input" id="newPinInput" placeholder="Enter new 4-digit PIN" maxlength="4" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      <button class="setting-btn sbt-blue" onclick="changeAdminPin()" style="margin-top:6px;">🔐 CHANGE PIN</button>
+    </div>
+    <!-- DEVICE MANAGEMENT -->
+    <div class="settings-section">
+      <div class="settings-section-title">📱 Device Management — Approve / Block</div>
+      <div style="font-size:11px;color:#888;margin-bottom:8px;">✅ Approve or ❌ Block team devices here</div>
+      <button class="setting-btn sbt-blue" onclick="refreshDeviceList()" style="width:100%;padding:12px;border-radius:10px;margin-bottom:8px;font-size:14px;">🔄 REFRESH DEVICE LIST</button>
+      <div id="deviceList"><div class="history-empty">Tap REFRESH to load devices</div></div>
+      <button class="setting-btn sbt-red" onclick="clearAllDevices()" style="margin-top:8px;width:100%;padding:10px;border-radius:10px;">🗑️ CLEAR ALL DEVICES</button>
+    </div>
+    <!-- GOOGLE SHEET SYNC -->
+    <div class="settings-section">
+      <div class="settings-section-title">📊 Google Sheet Connection</div>
+      <!-- CONNECTION STATUS BUTTON -->
+      <div id="sheetConnectBtn" onclick="testSheetUrl()" style="width:100%;padding:16px;border:none;border-radius:14px;font-size:16px;font-weight:800;cursor:pointer;margin-bottom:12px;background:linear-gradient(135deg,#9E9E9E,#616161);color:#fff;text-align:center;display:block;">
+        ⚪ NOT CONNECTED — TAP TO TEST
+      </div>
+      <div style="font-size:11px;color:#888;margin-bottom:8px;">Paste Google Apps Script URL:</div>
+      <input type="text" id="sheetScriptUrl" class="setting-input" placeholder="Paste Google Apps Script URL...">
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="setting-btn sbt-green" onclick="saveSheetUrl()" style="flex:1;padding:12px;">💾 SAVE</button>
+        <button class="setting-btn sbt-blue" onclick="testSheetUrl()" style="flex:1;padding:12px;">🧪 TEST</button>
+      </div>
+      <div class="sync-status" id="sheetUrlStatus"></div>
+    </div>
+  </div>
 </div>
 
 <script>
+// ============================================================
+// VARIABLES
+// ============================================================
+let accountsSet=new Set(),accountsArray=[],currentMode='manual';
+let videoStream=null,instStream=null,torchOn=false,instTorchOn=false;
+let contMode=false,contTimer=null,currentTrack=null,instTrack=null;
+let handsRecog=null,micRecog=null,fileSource='manual',dupCount=0,ocrTimeoutId=null;
+let instRunning=false,instTimer=null,instCountdown=5,instCountdownTimer=null;
+let instCheckedCount=0,instFoundCount=0;
+let sessCheckedCount=0,sessFoundCount=0;
+let headerTapCount=0,headerTapTimer=null;
+let currentPin='';
+const ADMIN_CONTACT='SureshKumar',ADMIN_PHONE='9842576569';
+const DEFAULT_PIN='1234';
+const MAX_RECORDS=200000;
 
-function saveURL(){
-  const url=document.getElementById("scriptURL").value;
-  localStorage.setItem("scriptURL",url);
-  alert("Saved");
+// ============================================================
+// DEVICE ID
+// ============================================================
+function getDeviceId(){
+  let id=localStorage.getItem('aofDeviceId');
+  if(!id){
+    id='AOF-'+Math.random().toString(36).substr(2,4).toUpperCase()+'-'+Date.now().toString(36).toUpperCase().slice(-4);
+    localStorage.setItem('aofDeviceId',id);
+  }
+  return id;
 }
 
-function testConnection(){
+// ============================================================
+// ACTIVATION / SECURITY
+// ============================================================
+function checkActivation(){
+  const devId=getDeviceId();
+  document.getElementById('actDeviceId').textContent=devId;
 
-  const url=localStorage.getItem("scriptURL");
-
-  if(!url){
-    alert("No URL saved");
+  // If NO Google Sheet URL set → skip security, auto approve
+  // Admin must set up sheet URL first via SYSTEM CONFIG
+  const sheetUrl=localStorage.getItem('aofSheetUrl')||'';
+  if(!sheetUrl){
+    // No security set up yet — let everyone in
+    hideActivationScreen();
     return;
   }
 
-  fetch(url+"?action=test")
-  .then(r=>r.json())
-  .then(d=>{
-
-    if(d.status=="ok"){
-      document.getElementById("status").innerHTML=
-      "<div class='connected'>CONNECTED</div>";
-    }
-
-  });
-
-}
-
-function getDeviceId(){
-
-  let id=localStorage.getItem("deviceId");
-
-  if(!id){
-
-    id="DEV-"+Math.random().toString(36).substr(2,9);
-
-    localStorage.setItem("deviceId",id);
-
-  }
-
-  return id;
-
-}
-
-function autoRegisterDevice(){
-
-  const url=localStorage.getItem("scriptURL");
-
-  if(!url) return;
-
-  const id=getDeviceId();
-
-  const name=navigator.userAgent.includes("Mobile")
-  ?"Mobile-"+id
-  :"PC-"+id;
-
-  fetch(url+
-    "?action=register"+
-    "&deviceId="+encodeURIComponent(id)+
-    "&deviceName="+encodeURIComponent(name)+
-    "&time="+encodeURIComponent(new Date().toLocaleString())
-  )
-  .then(r=>r.json())
-  .then(d=>console.log(d));
-
-}
-
-function loadDevices(){
-
-  const url=localStorage.getItem("scriptURL");
-
-  if(!url) return;
-
-  fetch(url+"?action=list")
-  .then(r=>r.json())
-  .then(data=>{
-
-    const list=document.getElementById("deviceList");
-
-    list.innerHTML="";
-
-    data.devices.forEach(d=>{
-
-      list.innerHTML+=
-      "<div class='device'>"+
-      "<b>"+d.name+"</b><br>"+
-      "ID: "+d.deviceId+"<br>"+
-      "Status: "+d.status+
-      "<br>"+
-      "<button class='block' onclick=\"blockDevice('"+d.deviceId+"')\">BLOCK</button>"+
-      "</div>";
-
+  // Check with Google Sheet
+  document.getElementById('actChecking').textContent='🔄 Checking activation...';
+  fetch(sheetUrl+'?action=check&deviceId='+encodeURIComponent(devId),{signal:AbortSignal.timeout(8000)})
+    .then(r=>r.json())
+    .then(data=>{
+      document.getElementById('actChecking').textContent='';
+      if(data.status==='approved'){
+        hideActivationScreen();
+      }else if(data.status==='blocked'){
+        showBlockedScreen();
+      }else{
+        // Register as pending
+        registerDevice(devId,sheetUrl);
+        showActivationScreen();
+      }
+    })
+    .catch(()=>{
+      // Cannot reach server — check cache
+      document.getElementById('actChecking').textContent='';
+      const cached=localStorage.getItem('aofActivationStatus');
+      if(cached==='approved')hideActivationScreen();
+      else hideActivationScreen(); // Allow access if cannot check
     });
-
-  });
-
 }
 
+function showActivationScreen(){
+  document.getElementById('activationScreen').classList.add('active');
+  document.getElementById('actDeviceId').textContent=getDeviceId();
+}
+function hideActivationScreen(){
+  document.getElementById('activationScreen').classList.remove('active');
+}
+function showBlockedScreen(){
+  document.getElementById('activationScreen').classList.add('active');
+  document.querySelector('.act-title').textContent='❌ Access Suspended';
+  document.querySelector('.act-subtitle').textContent='Your device access has been suspended by the administrator.';
+  document.getElementById('actDeviceId').textContent=getDeviceId();
+}
+
+// ============================================================
+// DEVICE MANAGEMENT
+// ============================================================
+function getDevices(){try{return JSON.parse(localStorage.getItem('aofDevices')||'{}');}catch(e){return {};}}
+function saveDevices(d){localStorage.setItem('aofDevices',JSON.stringify(d));}
+
+function approveDevice(id){
+  const d=getDevices();
+  if(d[id]){d[id].status='approved';d[id].approvedTime=new Date().toLocaleString('en-IN');}
+  saveDevices(d);renderDeviceList();
+}
 function blockDevice(id){
-
-  const url=localStorage.getItem("scriptURL");
-
-  fetch(url+
-    "?action=update"+
-    "&deviceId="+id+
-    "&status=blocked"
-  )
-  .then(()=>loadDevices());
-
+  const d=getDevices();
+  if(d[id]){d[id].status='blocked';}
+  saveDevices(d);renderDeviceList();
+}
+function deleteDevice(id){
+  const d=getDevices();
+  delete d[id];
+  saveDevices(d);renderDeviceList();
+}
+function clearAllDevices(){
+  if(!confirm('Clear ALL device registrations?'))return;
+  localStorage.removeItem('aofDevices');renderDeviceList();
 }
 
-document.addEventListener("DOMContentLoaded",function(){
+function renderDeviceList(){
+  const d=getDevices(),el=document.getElementById('deviceList');
+  const keys=Object.keys(d);
+  if(keys.length===0){el.innerHTML='<div class="history-empty">No devices registered yet</div>';return;}
+  // Sort: pending first, then approved, then blocked
+  keys.sort((a,b)=>{
+    const order={pending:0,approved:1,blocked:2};
+    return (order[d[a].status]||0)-(order[d[b].status]||0);
+  });
+  el.innerHTML=keys.map(id=>{
+    const dev=d[id];
+    const statusClass=dev.status==='approved'?'status-approved':dev.status==='blocked'?'status-blocked':'status-pending';
+    const statusText=dev.status==='approved'?'✅ Active':dev.status==='blocked'?'❌ Blocked':'⏳ Pending';
+    return `<div class="device-card ${dev.status}">
+      <div class="device-top">
+        <span class="device-name">📱 ${dev.name||'Device'}</span>
+        <span class="device-status ${statusClass}">${statusText}</span>
+      </div>
+      <div class="device-info">ID: ${id} • ${dev.time||''}</div>
+      <div class="device-actions">
+        ${dev.status!=='approved'?`<button class="dev-btn dev-approve" onclick="approveDevice('${id}')">✅ APPROVE</button>`:''}
+        ${dev.status!=='blocked'?`<button class="dev-btn dev-block" onclick="blockDevice('${id}')">❌ BLOCK</button>`:''}
+        <button class="dev-btn dev-delete" onclick="deleteDevice('${id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
 
-  const url=localStorage.getItem("scriptURL");
+// ============================================================
+// ADMIN PIN SYSTEM
+// ============================================================
+function getAdminPin(){return localStorage.getItem('aofAdminPin')||DEFAULT_PIN;}
+function headerTap(){
+  headerTapCount++;
+  const hint=document.getElementById('tapHint');
+  if(!hint)return;
+  if(headerTapTimer)clearTimeout(headerTapTimer);
+  hint.textContent='🔐 '+headerTapCount+' / 7';
+  hint.style.color='#2196F3';
+  if(headerTapCount>=7){
+    headerTapCount=0;
+    hint.textContent='✅ Admin Opening!';
+    hint.style.color='#4CAF50';
+    setTimeout(()=>{hint.textContent='';},2000);
+    openAdminPin();
+    return;
+  }
+  headerTapTimer=setTimeout(()=>{
+    headerTapCount=0;
+    hint.textContent='';
+  },3000);
+}
+// SECRET FOOTER CLICK - backup method (click "AOF Finder v6.0" in footer 3 times)
+let footerClickCount=0,footerClickTimer=null;
+function adminSecretClick(){
+  footerClickCount++;
+  if(footerClickTimer)clearTimeout(footerClickTimer);
+  if(footerClickCount>=3){
+    footerClickCount=0;
+    openAdminPin();
+    return;
+  }
+  footerClickTimer=setTimeout(()=>{footerClickCount=0;},2000);
+}
+function openAdminPin(){
+  currentPin='';updatePinDots();
+  document.getElementById('adminPinScreen').classList.add('active');
+}
+function closePinScreen(){
+  currentPin='';updatePinDots();
+  document.getElementById('adminPinScreen').classList.remove('active');
+}
+function pinKey(k){
+  if(currentPin.length>=4)return;
+  currentPin+=k;updatePinDots();
+  if(currentPin.length===4)setTimeout(checkPin,200);
+}
+function pinDel(){currentPin=currentPin.slice(0,-1);updatePinDots();}
+function updatePinDots(){
+  for(let i=0;i<4;i++){
+    const d=document.getElementById('pd'+i);
+    if(d)d.classList.toggle('filled',i<currentPin.length);
+  }
+}
+function checkPin(){
+  if(currentPin===getAdminPin()){
+    closePinScreen();openAdminPanel();
+  }else{
+    currentPin='';updatePinDots();
+    alert('❌ Wrong PIN! Try again.');
+  }
+}
+function changeAdminPin(){
+  const np=document.getElementById('newPinInput').value.trim();
+  if(np.length!==4||!/^\d{4}$/.test(np)){alert('⚠️ Please enter exactly 4 digits!');return;}
+  localStorage.setItem('aofAdminPin',np);
+  document.getElementById('newPinInput').value='';
+  alert('✅ Admin PIN changed successfully!');
+}
+function openAdminPanel(){
+  loadAdminKeys();
+  // Load saved sheet URL into field
+  const savedUrl=localStorage.getItem('aofSheetUrl')||'';
+  const urlField=document.getElementById('sheetScriptUrl');
+  const btn=document.getElementById('sheetConnectBtn');
+  if(savedUrl){
+    if(urlField)urlField.value=savedUrl;
+    // Restore button state
+    const wasConnected=localStorage.getItem('aofSheetConnected');
+    if(wasConnected==='true'){
+      if(btn){btn.textContent='🟢 CONNECTED ✅ Google Sheet Working!';btn.style.cssText='width:100%;padding:16px;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:12px;color:#fff;text-align:center;display:block;background:linear-gradient(135deg,#4CAF50,#2e7d32)';}
+    }else if(wasConnected==='false'){
+      if(btn){btn.textContent='🔴 NOT CONNECTED ❌ Tap to retry!';btn.style.cssText='width:100%;padding:16px;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:12px;color:#fff;text-align:center;display:block;background:linear-gradient(135deg,#e53935,#b71c1c)';}
+    }else{
+      // Has URL but never tested — auto test
+      setTimeout(testSheetUrl,500);
+    }
+  }else{
+    if(btn){btn.textContent='⚪ NOT CONNECTED — Paste URL & Save First!';btn.style.cssText='width:100%;padding:16px;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:12px;color:#fff;text-align:center;display:block;background:linear-gradient(135deg,#9E9E9E,#616161)';}
+  }
+  document.getElementById('adminScreen').classList.add('active');
+  document.body.style.overflow='hidden';
+  // Auto load device list
+  setTimeout(refreshDeviceList,300);
+}
 
-  if(url)
-    document.getElementById("scriptURL").value=url;
+// ============================================================
+// ADMIN API KEYS
+// ============================================================
+function saveAdminKey(type){
+  const map={gemini:'adminGeminiKey',groq:'adminGroqKey',ocr:'adminOcrKey'};
+  const storMap={gemini:'aofGeminiKey',groq:'aofGroqKey',ocr:'ocrApiKey'};
+  const val=document.getElementById(map[type]).value.trim();
+  if(!val){alert('Please paste the API key first!');return;}
+  localStorage.setItem(storMap[type],val);
+  updateKeyStatus();alert('✅ '+type.toUpperCase()+' key saved!');
+}
+function clearAdminKey(type){
+  const storMap={gemini:'aofGeminiKey',groq:'aofGroqKey',ocr:'ocrApiKey'};
+  localStorage.removeItem(storMap[type]);
+  const map={gemini:'adminGeminiKey',groq:'adminGroqKey',ocr:'adminOcrKey'};
+  document.getElementById(map[type]).value='';
+  updateKeyStatus();alert('✅ '+type.toUpperCase()+' key cleared!');
+}
+function loadAdminKeys(){
+  const gk=localStorage.getItem('aofGeminiKey')||'';
+  const grk=localStorage.getItem('aofGroqKey')||'';
+  const ok=localStorage.getItem('ocrApiKey')||'';
+  document.getElementById('adminGeminiKey').value=gk;
+  document.getElementById('adminGroqKey').value=grk;
+  document.getElementById('adminOcrKey').value=ok;
+  updateKeyStatus();
+}
+function updateKeyStatus(){
+  const gk=localStorage.getItem('aofGeminiKey')||'';
+  const grk=localStorage.getItem('aofGroqKey')||'';
+  const ok=localStorage.getItem('ocrApiKey')||'';
+  const gs=document.getElementById('geminiStatus');
+  const grs=document.getElementById('groqStatus');
+  const os=document.getElementById('ocrStatus2');
+  if(gs){gs.textContent=gk?'✅ Active':'No Key';gs.className='api-key-status '+(gk?'key-active':'key-inactive');}
+  if(grs){grs.textContent=grk?'✅ Active':'No Key';grs.className='api-key-status '+(grk?'key-active':'key-inactive');}
+  if(os){os.textContent=ok?'✅ Active':'No Key';os.className='api-key-status '+(ok?'key-active':'key-inactive');}
+}
+function saveSheetUrl(){
+  const url=document.getElementById('sheetScriptUrl').value.trim();
+  if(!url){alert('Please paste the Google Apps Script URL!');return;}
+  localStorage.setItem('aofSheetUrl',url);
+  const check=localStorage.getItem('aofSheetUrl');
+  if(check){
+    const el=document.getElementById('sheetUrlStatus');
+    if(el)el.textContent='✅ URL saved permanently!';
+    alert('✅ Google Sheet URL saved permanently! Now tap TEST button!');
+  }else{
+    alert('❌ Save failed! Please try again!');
+  }
+}
 
-  autoRegisterDevice();
+// ============================================================
+// EXISTING FUNCTIONS — UNTOUCHED
+// ============================================================
+function toggleLoadMode(){
+  currentMode=document.querySelector('input[name="loadType"]:checked').value;
+  const ta=document.getElementById('accountsList'),bb=document.getElementById('bulkBtn');
+  if(currentMode==='manual'){ta.placeholder='MANUAL: Type 11-digit numbers\n00000000000';bb.style.display='none';}
+  else{ta.placeholder='BULK: Paste AOFMASTER.txt content\nP000004Q000000R → 00000000000';bb.style.display='block';}
+}
+function extract11Digits(text){
+  return text.split(/\r?\n|\r/).map(line=>{const c=line.replace(/[^0-9]/g,'');return c.length>=11?c.slice(0,11):null;}).filter(Boolean);
+}
+function validateManual(text){const c=text.trim().replace(/[^0-9]/g,'');return c.length===11?c:null;}
+function setResult(msg,cls,sub){
+  const el=document.getElementById('result');el.className='';
+  el.innerHTML=msg+(sub?`<div class="sub">${sub}</div>`:'');
+  if(cls)el.classList.add(cls);
+}
+function handleBulkFile(event){
+  const file=event.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const numbers=extract11Digits(e.target.result);
+    if(numbers.length>0)document.getElementById('accountsList').value=numbers.join('\n');
+    else alert('❌ No 11+ digit sequences found!');
+  };reader.readAsText(file);
+}
+function loadAccounts(){
+  const rawText=document.getElementById('accountsList').value.trim();
+  if(!rawText){alert('📋 Paste content or upload file!');return;}
+  let valid=currentMode==='manual'?rawText.split(/\r?\n|\r/).map(l=>validateManual(l)).filter(Boolean):extract11Digits(rawText);
+  if(valid.length===0){alert('❌ No 11-digit numbers found!');return;}
+  if(valid.length>MAX_RECORDS){valid=valid.slice(0,MAX_RECORDS);alert('⚠️ Trimmed to '+MAX_RECORDS.toLocaleString()+' records (maximum capacity)');}
+  saveAndActivateAccounts(valid,'Manual Upload');
+}
+function checkAccount(){
+  const input=document.getElementById('accountInput'),q=input.value.trim();
+  if(q.length!==11||!/^\d{11}$/.test(q)){setResult('⚠️ EXACTLY 11 digits','','00000000000');return;}
+  checkDuplicate(q);
+  const found=accountsSet.has(q);
+  found?setResult('✅ FOUND','r-found',q):setResult('❌ NOT FOUND','r-miss',q);
+  speakResult(found);vibrateResult(found);playSound(found);
+  addHistory(q,'✋ Manual',found);addReport('manual',found);
+  if(!found)addNotFound(q,'✋ Manual');
+  input.value='';input.focus();
+}
+function aiSearch(){
+  const input=document.getElementById('accountInput'),q=input.value.trim();
+  if(q.length<6){setResult('⚠️ 6+ digits for AI','','1136479');return;}
+  const match=accountsArray.find(acc=>acc.includes(q));
+  if(match){
+    checkDuplicate(match);setResult('🧠 AI FOUND','r-ai',match);input.value=match;
+    speakResult(true);vibrateResult(true);playSound(true);
+    addHistory(match,'🧠 AI',true);addReport('manual',true);
+  }else{
+    setResult('❌ NO MATCH','r-miss');speakResult(false);vibrateResult(false);playSound(false);
+    addHistory(q,'🧠 AI',false);addReport('manual',false);addNotFound(q,'🧠 AI');
+  }
+  input.focus();
+}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.activeElement.id==='accountInput')checkAccount();});
 
-  testConnection();
+// ============================================================
+// PERMANENT STORAGE — 200,000 CAPACITY
+// ============================================================
+function saveAndActivateAccounts(valid,source){
+  showLoading('Saving '+valid.length.toLocaleString()+' accounts...');
+  setTimeout(()=>{
+    accountsSet=new Set(valid);accountsArray=valid;
+    const now=new Date(),info={accounts:valid,count:valid.length,
+      date:now.toLocaleDateString('en-IN'),
+      time:now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}),source};
+    try{localStorage.setItem('aofAccounts',JSON.stringify(info));}
+    catch(e){alert('⚠️ Storage full! Clear old data in Settings.');}
+    hideLoading();activateSearchUI(info);
+    alert('✅ '+accountsSet.size.toLocaleString()+' accounts saved permanently!');
+  },100);
+}
+function loadSavedAccounts(){
+  try{
+    const saved=JSON.parse(localStorage.getItem('aofAccounts')||'null');
+    if(!saved||!saved.accounts||saved.accounts.length===0)return false;
+    showLoading('Loading '+saved.count.toLocaleString()+' saved accounts...');
+    setTimeout(()=>{accountsSet=new Set(saved.accounts);accountsArray=saved.accounts;hideLoading();activateSearchUI(saved);},200);
+    return true;
+  }catch(e){return false;}
+}
+function activateSearchUI(info){
+  document.getElementById('loadSection').style.display='none';
+  document.getElementById('inputSection').style.display='block';
+  document.getElementById('savedInfoBar').classList.add('show');
+  document.getElementById('savedCount').textContent='✅ '+info.count.toLocaleString()+' accounts ready!';
+  document.getElementById('savedDate').textContent='📅 '+info.date+' '+info.time+' • '+info.source;
+  document.getElementById('stats').textContent='✅ '+accountsSet.size.toLocaleString()+' × 11-digit accounts LOADED!';
+  const sc=document.getElementById('settingsCount'),sd=document.getElementById('settingsDate');
+  if(sc)sc.textContent=info.count.toLocaleString();
+  if(sd)sd.textContent=info.date+' '+info.time;
+}
+function clearAccountsData(){
+  if(!confirm('⚠️ Remove ALL saved accounts?'))return;
+  localStorage.removeItem('aofAccounts');accountsSet=new Set();accountsArray=[];
+  document.getElementById('savedInfoBar').classList.remove('show');
+  document.getElementById('inputSection').style.display='none';
+  document.getElementById('loadSection').style.display='block';
+  closeScreen('settingsScreen');alert('✅ Accounts data cleared!');
+}
+function handleSettingsFile(event){
+  const file=event.target.files[0];if(!file)return;
+  showLoading('Reading file...');
+  const reader=new FileReader();
+  reader.onload=function(e){
+    let numbers=extract11Digits(e.target.result);hideLoading();
+    if(numbers.length===0){alert('❌ No 11-digit numbers found!');return;}
+    if(numbers.length>MAX_RECORDS)numbers=numbers.slice(0,MAX_RECORDS);
+    saveAndActivateAccounts(numbers,'Manual Upload');closeScreen('settingsScreen');
+  };reader.readAsText(file);
+}
 
-  loadDevices();
+// ============================================================
+// GOOGLE DRIVE — AUTO SYNC ON OPEN
+// ============================================================
+function setFileSource(src){
+  fileSource=src;localStorage.setItem('aofFileSource',src);
+  document.getElementById('srcManualOpt').classList.toggle('selected',src==='manual');
+  document.getElementById('srcDriveOpt').classList.toggle('selected',src==='drive');
+  document.getElementById('manualUploadSection').style.display=src==='manual'?'block':'none';
+  document.getElementById('driveSection').style.display=src==='drive'?'block':'none';
+}
+function saveDriveLink(){
+  const link=document.getElementById('driveLink').value.trim();
+  if(!link){alert('Please paste Google Drive link!');return;}
+  localStorage.setItem('aofDriveLink',link);
+  alert('✅ Google Drive link saved!\nApp will auto sync every time it opens!');
+}
+function autoSyncOnOpen(){
+  const src=localStorage.getItem('aofFileSource')||'manual';
+  const link=localStorage.getItem('aofDriveLink')||'';
+  if(src!=='drive'||!link||!navigator.onLine)return;
+  // Silent background sync
+  let directUrl=link;
+  const idMatch=link.match(/[-\w]{25,}/);
+  if(idMatch)directUrl='https://drive.google.com/uc?export=download&id='+idMatch[0];
+  fetch(directUrl)
+    .then(res=>{if(!res.ok)throw new Error();return res.text();})
+    .then(text=>{
+      let numbers=extract11Digits(text);
+      if(numbers.length===0)return;
+      if(numbers.length>MAX_RECORDS)numbers=numbers.slice(0,MAX_RECORDS);
+      accountsSet=new Set(numbers);accountsArray=numbers;
+      const now=new Date(),info={accounts:numbers,count:numbers.length,
+        date:now.toLocaleDateString('en-IN'),
+        time:now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}),source:'Google Drive Auto Sync'};
+      try{localStorage.setItem('aofAccounts',JSON.stringify(info));}catch(e){}
+      localStorage.setItem('aofLastSync',info.date+' '+info.time);
+      activateSearchUI(info);
+      // Show sync banner
+      const banner=document.getElementById('syncBanner');
+      banner.textContent='🔄 Auto synced! ✅ '+numbers.length.toLocaleString()+' accounts updated — '+info.time;
+      banner.classList.add('show');
+      setTimeout(()=>banner.classList.remove('show'),5000);
+    })
+    .catch(()=>{});// Silent fail — use cached data
+}
+function syncFromDrive(){
+  const link=document.getElementById('driveLink').value.trim()||localStorage.getItem('aofDriveLink')||'';
+  if(!link){alert('⚠️ Please paste and save Google Drive link first!');return;}
+  if(!navigator.onLine){alert('⚠️ No internet! Please connect and try again.');return;}
+  let directUrl=link;
+  const idMatch=link.match(/[-\w]{25,}/);
+  if(idMatch)directUrl='https://drive.google.com/uc?export=download&id='+idMatch[0];
+  document.getElementById('syncStatus').textContent='🔄 Downloading from Google Drive...';
+  showLoading('Syncing from Google Drive...');
+  fetch(directUrl)
+    .then(res=>{if(!res.ok)throw new Error('Status: '+res.status);return res.text();})
+    .then(text=>{
+      let numbers=extract11Digits(text);hideLoading();
+      if(numbers.length===0){document.getElementById('syncStatus').textContent='❌ No valid accounts found!';return;}
+      if(numbers.length>MAX_RECORDS)numbers=numbers.slice(0,MAX_RECORDS);
+      const now=new Date(),ts=now.toLocaleDateString('en-IN')+' '+now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+      localStorage.setItem('aofLastSync',ts);
+      document.getElementById('syncStatus').textContent='✅ Synced! '+numbers.length.toLocaleString()+' accounts • '+ts;
+      saveAndActivateAccounts(numbers,'Google Drive Sync');closeScreen('settingsScreen');
+    })
+    .catch(err=>{
+      hideLoading();
+      document.getElementById('syncStatus').textContent='❌ Sync failed!';
+      alert('❌ Sync failed!\n\nMake sure:\n1. File shared publicly\n2. "Anyone with link" → View\n3. Internet connected\n\n'+err.message);
+    });
+}
+function loadSettingsValues(){
+  const src=localStorage.getItem('aofFileSource')||'manual';
+  const link=localStorage.getItem('aofDriveLink')||'';
+  const sync=localStorage.getItem('aofLastSync')||'';
+  setFileSource(src);
+  const dl=document.getElementById('driveLink');if(dl)dl.value=link;
+  const ss=document.getElementById('syncStatus');if(ss&&sync)ss.textContent='✅ Last sync: '+sync;
+  const saved=JSON.parse(localStorage.getItem('aofAccounts')||'null');
+  if(saved){
+    const sc=document.getElementById('settingsCount'),sd=document.getElementById('settingsDate');
+    if(sc)sc.textContent=saved.count.toLocaleString();
+    if(sd)sd.textContent=saved.date+' '+saved.time;
+  }
+}
 
-});
+// ============================================================
+// LOADING
+// ============================================================
+function showLoading(msg){document.getElementById('loadingText').textContent=msg||'Loading...';document.getElementById('loadingOverlay').classList.add('active');}
+function hideLoading(){document.getElementById('loadingOverlay').classList.remove('active');}
 
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showSettings(){loadSettingsValues();document.getElementById('settingsScreen').classList.add('active');document.body.style.overflow='hidden';}
+function openReport(){renderReport();document.getElementById('reportScreen').classList.add('active');document.body.style.overflow='hidden';}
+function openNotFound(){renderNotFound();document.getElementById('notFoundScreen').classList.add('active');document.body.style.overflow='hidden';}
+function closeScreen(id){document.getElementById(id).classList.remove('active');document.body.style.overflow='';}
+
+// ============================================================
+// VOICE + VIBRATION + SOUND
+// ============================================================
+function speakResult(found){
+  if(!window.speechSynthesis)return;window.speechSynthesis.cancel();
+  const msg=new SpeechSynthesisUtterance(found?'FOUND':'NOT FOUND');
+  msg.lang='en-US';msg.rate=0.9;msg.volume=1;window.speechSynthesis.speak(msg);
+}
+function vibrateResult(found){if(!navigator.vibrate)return;found?navigator.vibrate([300,100,300]):navigator.vibrate([80]);}
+function playSound(found){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const osc=ctx.createOscillator(),gain=ctx.createGain();
+    osc.connect(gain);gain.connect(ctx.destination);
+    osc.frequency.value=found?880:220;osc.type='sine';
+    gain.gain.setValueAtTime(0.3,ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.6);
+    osc.start(ctx.currentTime);osc.stop(ctx.currentTime+0.6);
+  }catch(e){}
+}
+function smartCorrect(text){
+  return text.replace(/[Bb]/g,'8').replace(/[Oo]/g,'0').replace(/[lIi]/g,'1')
+    .replace(/[Ss]/g,'5').replace(/[Gg]/g,'6').replace(/[Zz]/g,'2')
+    .replace(/[qQ]/g,'9').replace(/[^0-9]/g,'');
+}
+
+// ============================================================
+// DUPLICATE
+// ============================================================
+function getDupHistory(){try{return JSON.parse(localStorage.getItem('aofDupHistory')||'{}');}catch(e){return {};}}
+function checkDuplicate(num){
+  const dups=getDupHistory(),warn=document.getElementById('dupWarning');
+  if(dups[num]){
+    dupCount++;saveDupCount();
+    warn.textContent='⚠️ DUPLICATE! "'+num+'" searched before on '+dups[num];
+    warn.classList.add('show');setTimeout(()=>warn.classList.remove('show'),5000);
+  }else warn.classList.remove('show');
+  const now=new Date();
+  dups[num]=now.toLocaleDateString('en-IN')+' '+now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  localStorage.setItem('aofDupHistory',JSON.stringify(dups));
+}
+
+// ============================================================
+// HISTORY
+// ============================================================
+function getHistory(){try{return JSON.parse(localStorage.getItem('aofHistory')||'[]');}catch(e){return [];}}
+function addHistory(number,method,found){
+  const arr=getHistory(),now=new Date();
+  arr.unshift({number,method,found,time:now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}),date:now.toLocaleDateString('en-IN')});
+  if(arr.length>10)arr.length=10;
+  localStorage.setItem('aofHistory',JSON.stringify(arr));renderHistory();
+}
+function renderHistory(){
+  const arr=getHistory(),empty='<div class="history-empty">No searches yet</div>';
+  const html=arr.length===0?empty:arr.map(h=>`<div class="history-item"><span class="hi-num">${h.number}</span><span class="hi-method">${h.method}</span><span class="hi-time">${h.time}</span><span class="${h.found?'hi-found':'hi-miss'}">${h.found?'✅':'❌'}</span></div>`).join('');
+  ['historyList','camHistoryList','handsHistoryList'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=html;});
+}
+function clearHistory(){if(!confirm('Clear all search history?'))return;localStorage.removeItem('aofHistory');renderHistory();}
+
+// ============================================================
+// NOT FOUND
+// ============================================================
+function getNotFound(){try{return JSON.parse(localStorage.getItem('aofNotFound')||'[]');}catch(e){return [];}}
+function addNotFound(number,method){
+  const arr=getNotFound(),now=new Date();
+  arr.unshift({number,method,time:now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}),date:now.toLocaleDateString('en-IN')});
+  localStorage.setItem('aofNotFound',JSON.stringify(arr));
+}
+function renderNotFound(){
+  const arr=getNotFound(),el=document.getElementById('notFoundList'),cnt=document.getElementById('nfCount');
+  if(cnt)cnt.textContent=arr.length+' records';
+  el.innerHTML=arr.length===0?'<div class="history-empty">No NOT FOUND records yet</div>':
+    arr.map(h=>`<div class="nf-item"><span class="nf-num">${h.number}</span><div class="nf-meta">${h.method}<br>${h.date} ${h.time}</div></div>`).join('');
+}
+function clearNotFound(){if(!confirm('Clear NOT FOUND list?'))return;localStorage.removeItem('aofNotFound');renderNotFound();}
+
+// ============================================================
+// REPORT
+// ============================================================
+function getReport(){
+  try{const today=new Date().toDateString(),saved=JSON.parse(localStorage.getItem('aofReport')||'{}');
+    if(saved.date!==today)return{date:today,total:0,found:0,notFound:0,cam:0,manual:0,voice:0,instant:0,dup:0};return saved;
+  }catch(e){return{date:new Date().toDateString(),total:0,found:0,notFound:0,cam:0,manual:0,voice:0,instant:0,dup:0};}
+}
+function addReport(method,found){
+  const r=getReport();r.total++;if(found)r.found++;else r.notFound++;
+  if(method==='cam')r.cam++;else if(method==='voice')r.voice++;else if(method==='instant')r.instant++;else r.manual++;
+  r.dup=dupCount;localStorage.setItem('aofReport',JSON.stringify(r));
+}
+function saveDupCount(){const r=getReport();r.dup=dupCount;localStorage.setItem('aofReport',JSON.stringify(r));}
+function renderReport(){
+  const r=getReport(),rate=r.total>0?Math.round((r.found/r.total)*100):0;
+  const now=new Date();
+  document.getElementById('reportDate').textContent=now.toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('rptTotal').textContent=r.total;
+  document.getElementById('rptFound').textContent=r.found;
+  document.getElementById('rptNotFound').textContent=r.notFound;
+  document.getElementById('rptRate').textContent=rate+'%';
+  document.getElementById('rptInstant').textContent=r.instant||0;
+  document.getElementById('rptCam').textContent=r.cam;
+  document.getElementById('rptManual').textContent=r.manual;
+  document.getElementById('rptVoice').textContent=r.voice;
+  document.getElementById('rptDup').textContent=r.dup;
+}
+
+// ============================================================
+// SESSION
+// ============================================================
+function loadSession(){
+  const today=new Date().toDateString(),saved=JSON.parse(localStorage.getItem('aofSession')||'{}');
+  if(saved.date===today){sessCheckedCount=saved.checked||0;sessFoundCount=saved.found||0;}
+  else{sessCheckedCount=0;sessFoundCount=0;}updateSessionUI();
+}
+function updateSession(found){
+  sessCheckedCount++;if(found)sessFoundCount++;
+  localStorage.setItem('aofSession',JSON.stringify({date:new Date().toDateString(),checked:sessCheckedCount,found:sessFoundCount}));
+  updateSessionUI();
+}
+function updateSessionUI(){
+  const c=document.getElementById('sessChecked'),f=document.getElementById('sessFound');
+  if(c)c.textContent=sessCheckedCount;if(f)f.textContent=sessFoundCount;
+}
+
+// ============================================================
+// EXPORT
+// ============================================================
+function toCSV(headers,rows){return[headers.join(','),...rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(','))].join('\n');}
+function downloadCSV(content,filename){
+  const blob=new Blob([content],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);
+}
+function exportHistoryExcel(){
+  const arr=getHistory();if(arr.length===0){alert('No history!');return;}
+  downloadCSV(toCSV(['Date','Time','Account Number','Method','Result'],arr.map(h=>[h.date||'',h.time,h.number,h.method,h.found?'FOUND':'NOT FOUND'])),'AOF_History_'+new Date().toLocaleDateString('en-IN').replace(/\//g,'-')+'.csv');
+}
+function exportNotFoundExcel(){
+  const arr=getNotFound();if(arr.length===0){alert('No NOT FOUND records!');return;}
+  downloadCSV(toCSV(['Date','Time','Account Number','Method'],arr.map(h=>[h.date||'',h.time,h.number,h.method])),'AOF_NotFound_'+new Date().toLocaleDateString('en-IN').replace(/\//g,'-')+'.csv');
+}
+function exportReportExcel(){
+  const r=getReport(),rate=r.total>0?Math.round((r.found/r.total)*100)+'%':'0%';
+  downloadCSV(toCSV(['Metric','Value'],[['Date',new Date().toLocaleDateString('en-IN')],['Total',r.total],['FOUND',r.found],['NOT FOUND',r.notFound],['Rate',rate],['Instant',r.instant||0],['Camera',r.cam],['Manual',r.manual],['Voice',r.voice],['Duplicates',r.dup]]),'AOF_Report_'+new Date().toLocaleDateString('en-IN').replace(/\//g,'-')+'.csv');
+}
+function shareReportWhatsApp(){
+  const r=getReport(),rate=r.total>0?Math.round((r.found/r.total)*100):0;
+  const msg='📊 AOF Finder v6 Daily Report\n📅 '+new Date().toLocaleDateString('en-IN')+'\n\n✅ Total: '+r.total+'\n✅ FOUND: '+r.found+'\n❌ NOT FOUND: '+r.notFound+'\n📈 Success: '+rate+'%\n\n⚡ Instant: '+(r.instant||0)+' | 📷 Camera: '+r.cam+' | ✋ Manual: '+r.manual+' | 🗣️ Voice: '+r.voice+'\n\n— SUSINFO AOF Finder v6';
+  window.open('https://wa.me/?text='+encodeURIComponent(msg));
+}
+
+// ============================================================
+// CAMERA — UNTOUCHED FROM V5
+// ============================================================
+function openCamera(){
+  if(accountsSet.size===0){alert('⚠️ Please load accounts first!');return;}
+  document.getElementById('cameraScreen').classList.add('active');
+  document.body.style.overflow='hidden';
+  startCamera();renderHistory();updateOnlineStatus();
+}
+function closeCamera(){
+  stopCamera();
+  document.getElementById('cameraScreen').classList.remove('active');
+  document.body.style.overflow='';
+  if(contTimer){clearInterval(contTimer);contTimer=null;}
+  contMode=false;
+  document.getElementById('contBtn').innerHTML='🔁 AUTO<br>OFF';
+  document.getElementById('contBtn').classList.remove('on');
+  document.getElementById('continuousStatus').style.display='none';
+}
+function startCamera(){
+  navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}})
+    .then(stream=>{videoStream=stream;currentTrack=stream.getVideoTracks()[0];document.getElementById('camVideo').srcObject=stream;})
+    .catch(err=>alert('⚠️ Camera denied!\n'+err.message));
+}
+function stopCamera(){if(videoStream){videoStream.getTracks().forEach(t=>t.stop());videoStream=null;currentTrack=null;}}
+function toggleTorch(){
+  if(!currentTrack)return;torchOn=!torchOn;const btn=document.getElementById('torchBtn');
+  currentTrack.applyConstraints({advanced:[{torch:torchOn}]})
+    .then(()=>{btn.innerHTML=torchOn?'🔦 TORCH<br>ON':'🔦 TORCH<br>OFF';btn.classList.toggle('on',torchOn);})
+    .catch(()=>{alert('⚠️ Torch not supported');torchOn=false;});
+}
+function applyZoom(val,cam){
+  const track=cam==='cam'?currentTrack:instTrack;
+  const valEl=cam==='cam'?document.getElementById('zoomVal'):document.getElementById('instZoomVal');
+  const vidEl=cam==='cam'?document.getElementById('camVideo'):document.getElementById('instVideo');
+  if(valEl)valEl.textContent=val+'x';
+  if(!track)return;
+  const caps=track.getCapabilities?track.getCapabilities():{};
+  if(caps.zoom)track.applyConstraints({advanced:[{zoom:parseFloat(val)}]}).catch(()=>{});
+  else{vidEl.style.transform='scale('+val+')';vidEl.style.transformOrigin='center center';}
+}
+function toggleContinuous(){
+  contMode=!contMode;const btn=document.getElementById('contBtn');
+  btn.innerHTML=contMode?'🔁 AUTO<br>ON':'🔁 AUTO<br>OFF';btn.classList.toggle('on',contMode);
+  document.getElementById('continuousStatus').style.display=contMode?'block':'none';
+  if(contMode)contTimer=setInterval(()=>snapPhoto(),4000);
+  else{if(contTimer){clearInterval(contTimer);contTimer=null;}}
+}
+function snapPhoto(){
+  const video=document.getElementById('camVideo');
+  if(!video.videoWidth){showOcrStatus('⚠️ Camera not ready...','error');return;}
+  checkSignal();
+  const canvas=document.getElementById('camCanvas');
+  const MAX_W=800,MAX_H=600;let w=video.videoWidth,h=video.videoHeight;
+  if(w>MAX_W){h=Math.round(h*MAX_W/w);w=MAX_W;}
+  if(h>MAX_H){w=Math.round(w*MAX_H/h);h=MAX_H;}
+  canvas.width=w;canvas.height=h;
+  canvas.getContext('2d').drawImage(video,0,0,w,h);
+  const imgData=canvas.toDataURL('image/jpeg',0.6);
+  if(navigator.onLine){
+    document.getElementById('ocrBadge').textContent='🌐 Online';
+    document.getElementById('ocrModeLabel').textContent='OCR: Online';
+    sendToOnlineOCR(imgData);
+  }else{
+    document.getElementById('ocrBadge').textContent='📵 Offline';
+    document.getElementById('ocrModeLabel').textContent='OCR: Offline';
+    sendToOfflineOCR(imgData,'cam');
+  }
+}
+function checkSignal(){
+  const warn=document.getElementById('signalWarn');
+  if(!navigator.onLine){warn.classList.add('show');warn.textContent='📵 No Internet — Using Offline OCR';}
+  else warn.classList.remove('show');
+}
+function showOcrStatus(msg,type){const el=document.getElementById('ocrStatus');el.textContent=msg;el.className='ocr-status '+type;}
+function sendToOnlineOCR(b64){
+  const apiKey=localStorage.getItem('ocrApiKey')||'';
+  if(!apiKey){alert('⚠️ Please enter OCR.space API key in ⚙️ Settings → Admin Panel!');return;}
+  showOcrStatus('🌐 Online OCR scanning...','scanning');
+  if(ocrTimeoutId)clearTimeout(ocrTimeoutId);
+  ocrTimeoutId=setTimeout(()=>{showOcrStatus('⏱️ Timeout! Switching to offline...','error');sendToOfflineOCR(b64,'cam');},15000);
+  const b64data=b64.replace(/^data:image\/(png|jpeg|jpg);base64,/,'');
+  const fd=new FormData();
+  fd.append('base64Image','data:image/jpeg;base64,'+b64data);
+  fd.append('apikey',apiKey);fd.append('language','eng');
+  fd.append('isOverlayRequired','false');fd.append('detectOrientation','true');
+  fd.append('scale','true');fd.append('OCREngine','2');
+  fetch('https://api.ocr.space/parse/image',{method:'POST',body:fd})
+    .then(res=>res.json())
+    .then(data=>{
+      clearTimeout(ocrTimeoutId);
+      if(data.IsErroredOnProcessing){showOcrStatus('❌ OCR Error — offline fallback','error');sendToOfflineOCR(b64,'cam');return;}
+      const text=data.ParsedResults&&data.ParsedResults[0]?data.ParsedResults[0].ParsedText:'';
+      processOCRText(text,'cam');
+    })
+    .catch(()=>{clearTimeout(ocrTimeoutId);showOcrStatus('❌ Network error — offline fallback','error');sendToOfflineOCR(b64,'cam');});
+}
+function sendToOfflineOCR(b64,mode){
+  const statusFn=mode==='inst'?showInstOcrStatus:showOcrStatus;
+  statusFn('📵 Offline OCR scanning... (10-15 sec)','scanning');
+  if(typeof Tesseract==='undefined'){
+    const s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js';
+    s.onload=()=>runTesseract(b64,mode);
+    s.onerror=()=>statusFn('❌ Cannot load offline OCR.','error');
+    document.head.appendChild(s);
+  }else runTesseract(b64,mode);
+}
+function runTesseract(b64,mode){
+  Tesseract.recognize(b64,'eng',{logger:()=>{}})
+    .then(({data:{text}})=>processOCRText(text,mode))
+    .catch(()=>{
+      const fn=mode==='inst'?showInstOcrStatus:showOcrStatus;
+      fn('❌ Offline OCR failed. Try better lighting.','error');
+    });
+}
+function processOCRText(rawText,mode){
+  const allGroups=[];
+  rawText.split(/\r?\n|\r/).forEach(line=>{
+    const clean=smartCorrect(line);
+    if(clean.length>=11){
+      for(let i=0;i<=clean.length-11;i++){
+        const chunk=clean.slice(i,i+11);
+        if(!allGroups.includes(chunk))allGroups.push(chunk);
+      }
+    }
+  });
+  if(mode==='inst'){
+    processInstantResult(allGroups);return;
+  }
+  if(allGroups.length===0){
+    showOcrStatus('⚠️ No 11-digit numbers found — try again','error');
+    document.getElementById('extractedSection').style.display='none';
+    document.getElementById('searchBothBtn').style.display='none';return;
+  }
+  showOcrStatus('✅ Extracted! Check → SEARCH BOTH','done');
+  document.getElementById('extCustId').value=allGroups[0]||'';
+  document.getElementById('extAccNo').value=allGroups[1]||allGroups[0]||'';
+  document.getElementById('extractedSection').style.display='block';
+  document.getElementById('searchBothBtn').style.display='block';
+}
+function searchBoth(){
+  const cid=document.getElementById('extCustId').value.trim(),acc=document.getElementById('extAccNo').value.trim();
+  const v1=cid.length===11&&/^\d{11}$/.test(cid),v2=acc.length===11&&/^\d{11}$/.test(acc);
+  if(!v1&&!v2){setCamResult('⚠️ No valid 11-digit numbers','',null);return;}
+  if(v1)checkDuplicate(cid);if(v2&&acc!==cid)checkDuplicate(acc);
+  const f1=v1&&accountsSet.has(cid),f2=v2&&accountsSet.has(acc),either=f1||f2;
+  let sub=v1&&v2?'Customer ID: '+(f1?'✅ FOUND':'❌ NOT FOUND')+' | Account No: '+(f2?'✅ FOUND':'❌ NOT FOUND'):
+    v1?'Customer ID: '+(f1?'✅ FOUND':'❌ NOT FOUND'):'Account No: '+(f2?'✅ FOUND':'❌ NOT FOUND');
+  setCamResult(either?'✅ FOUND':'❌ NOT FOUND',sub,either);
+  speakResult(either);vibrateResult(either);playSound(either);
+  if(v1){addHistory(cid,'📷 Cam',f1);addReport('cam',f1);if(!f1)addNotFound(cid,'📷 Cam');}
+  if(v2&&acc!==cid){addHistory(acc,'📷 Cam',f2);if(!f2)addNotFound(acc,'📷 Cam');}
+  updateSession(either);
+}
+function setCamResult(msg,sub,found){
+  const el=document.getElementById('camResult');el.className='';
+  el.innerHTML=msg+(sub?'<div class="sub">'+sub+'</div>':'');
+  if(found===true)el.classList.add('r-found');if(found===false)el.classList.add('r-miss');
+}
+
+// ============================================================
+// ⚡ INSTANT SCAN — NEW FEATURE
+// ============================================================
+function openInstant(){
+  if(accountsSet.size===0){alert('⚠️ Please load accounts first!');return;}
+  document.getElementById('instantScreen').classList.add('active');
+  document.body.style.overflow='hidden';
+  startInstCamera();startInstantScan();
+}
+function closeInstant(){
+  stopInstantScan();stopInstCamera();
+  document.getElementById('instantScreen').classList.remove('active');
+  document.body.style.overflow='';
+}
+function startInstCamera(){
+  navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}})
+    .then(stream=>{instStream=stream;instTrack=stream.getVideoTracks()[0];document.getElementById('instVideo').srcObject=stream;})
+    .catch(err=>alert('⚠️ Camera denied!\n'+err.message));
+}
+function stopInstCamera(){if(instStream){instStream.getTracks().forEach(t=>t.stop());instStream=null;instTrack=null;}}
+function toggleInstTorch(){
+  if(!instTrack)return;instTorchOn=!instTorchOn;const btn=document.getElementById('instTorchBtn');
+  instTrack.applyConstraints({advanced:[{torch:instTorchOn}]})
+    .then(()=>{btn.innerHTML=instTorchOn?'🔦 TORCH<br>ON':'🔦 TORCH<br>OFF';btn.classList.toggle('on',instTorchOn);})
+    .catch(()=>{alert('⚠️ Torch not supported');instTorchOn=false;});
+}
+function startInstantScan(){
+  instRunning=true;
+  document.getElementById('instNextScan').textContent='⚡ Scanning now...';
+  instScanNow();// First scan immediately
+}
+function stopInstantScan(){
+  instRunning=false;
+  if(instTimer){clearTimeout(instTimer);instTimer=null;}
+  if(instCountdownTimer){clearInterval(instCountdownTimer);instCountdownTimer=null;}
+  document.getElementById('countdownBadge').textContent='⏹';
+  document.getElementById('instNextScan').textContent='⏹ Scan stopped';
+}
+function toggleInstant(){
+  if(instRunning){stopInstantScan();document.querySelector('.ctrl-btn.inst-stop').innerHTML='▶ START<br>SCAN';document.querySelector('.ctrl-btn.inst-stop').onclick=()=>{toggleInstant();};}
+  else{startInstantScan();document.querySelector('.ctrl-btn.inst-stop').innerHTML='⏹ STOP<br>SCAN';document.querySelector('.ctrl-btn.inst-stop').onclick=()=>{toggleInstant();};}
+}
+function instScanNow(){
+  if(!instRunning)return;
+  const video=document.getElementById('instVideo');
+  if(!video.videoWidth){
+    showInstOcrStatus('⏳ Camera starting...','scanning');
+    instTimer=setTimeout(instScanNow,2000);return;
+  }
+  // Capture image
+  const canvas=document.getElementById('instCanvas');
+  let w=video.videoWidth,h=video.videoHeight;
+  const MAX_W=800,MAX_H=600;
+  if(w>MAX_W){h=Math.round(h*MAX_W/w);w=MAX_W;}
+  if(h>MAX_H){w=Math.round(w*MAX_H/h);h=MAX_H;}
+  canvas.width=w;canvas.height=h;
+  canvas.getContext('2d').drawImage(video,0,0,w,h);
+  const imgData=canvas.toDataURL('image/jpeg',0.6);
+  // Start countdown for next scan
+  startCountdown(5);
+  // Send to AI — smart order
+  sendToInstantAI(imgData);
+}
+function startCountdown(sec){
+  if(instCountdownTimer)clearInterval(instCountdownTimer);
+  let remaining=sec;
+  document.getElementById('countdownBadge').textContent=remaining+'s';
+  document.getElementById('instNextScan').textContent='⏱ Next scan in '+remaining+' seconds...';
+  instCountdownTimer=setInterval(()=>{
+    remaining--;
+    document.getElementById('countdownBadge').textContent=remaining+'s';
+    document.getElementById('instNextScan').textContent='⏱ Next scan in '+remaining+' seconds...';
+    if(remaining<=0){
+      clearInterval(instCountdownTimer);
+      if(instRunning)instScanNow();
+    }
+  },1000);
+}
+function showInstOcrStatus(msg,type){
+  const el=document.getElementById('instOcrStatus');
+  if(el){el.textContent=msg;el.className='ocr-status '+type;}
+}
+function setEngineStatus(engine,status){
+  const el=document.getElementById('eng-'+engine);
+  if(el){el.className='engine-dot '+status;}
+}
+function resetEngines(){
+  ['gemini','groq','ocr','tess'].forEach(e=>setEngineStatus(e,''));
+}
+
+// INSTANT AI — Smart order: Gemini → Groq → OCR → Tesseract
+function sendToInstantAI(b64){
+  resetEngines();
+  const geminiKey=localStorage.getItem('aofGeminiKey')||'';
+  const groqKey=localStorage.getItem('aofGroqKey')||'';
+  const ocrKey=localStorage.getItem('ocrApiKey')||'';
+  if(!navigator.onLine){
+    // Offline — use Tesseract
+    setEngineStatus('tess','active');
+    document.getElementById('instBadge').textContent='📵 Offline';
+    document.getElementById('instModeLabel').textContent='AI: Offline (Tesseract)';
+    showInstOcrStatus('📵 Offline scan...','scanning');
+    sendToOfflineOCR(b64,'inst');
+    return;
+  }
+  if(geminiKey){
+    setEngineStatus('gemini','active');
+    document.getElementById('instBadge').textContent='🤖 Gemini';
+    document.getElementById('instModeLabel').textContent='AI: Gemini (Google)';
+    showInstOcrStatus('🤖 Gemini AI scanning...','scanning');
+    sendToGemini(b64,geminiKey,groqKey,ocrKey);
+  }else if(groqKey){
+    setEngineStatus('groq','active');
+    document.getElementById('instBadge').textContent='⚡ Groq';
+    document.getElementById('instModeLabel').textContent='AI: Groq';
+    showInstOcrStatus('⚡ Groq AI scanning...','scanning');
+    sendToGroq(b64,groqKey,ocrKey);
+  }else if(ocrKey){
+    setEngineStatus('ocr','active');
+    document.getElementById('instBadge').textContent='📷 OCR';
+    document.getElementById('instModeLabel').textContent='AI: OCR.space';
+    showInstOcrStatus('📷 OCR.space scanning...','scanning');
+    sendInstToOCR(b64,ocrKey);
+  }else{
+    setEngineStatus('tess','active');
+    document.getElementById('instBadge').textContent='📵 Offline';
+    showInstOcrStatus('📵 Offline scan (no API keys)...','scanning');
+    sendToOfflineOCR(b64,'inst');
+  }
+}
+
+function sendToGemini(b64,geminiKey,groqKey,ocrKey){
+  const b64data=b64.replace(/^data:image\/(png|jpeg|jpg);base64,/,'');
+  const body={contents:[{parts:[
+    {text:'Extract ONLY 11-digit numbers from this image. Return ONLY the numbers, one per line, nothing else. If no 11-digit numbers found, return NONE.'},
+    {inline_data:{mime_type:'image/jpeg',data:b64data}}
+  ]}]};
+  fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+geminiKey,
+    {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(res=>res.json())
+    .then(data=>{
+      const text=data?.candidates?.[0]?.content?.parts?.[0]?.text||'';
+      if(text&&text!=='NONE'&&text.trim()){
+        setEngineStatus('gemini','active');processOCRText(text,'inst');
+      }else{
+        // Fallback to Groq
+        setEngineStatus('gemini','failed');
+        if(groqKey){setEngineStatus('groq','waiting');sendToGroq(b64,groqKey,ocrKey);}
+        else if(ocrKey){setEngineStatus('ocr','waiting');sendInstToOCR(b64,ocrKey);}
+        else{setEngineStatus('tess','waiting');sendToOfflineOCR(b64,'inst');}
+      }
+    })
+    .catch(()=>{
+      setEngineStatus('gemini','failed');
+      if(groqKey){setEngineStatus('groq','waiting');showInstOcrStatus('⚡ Groq AI scanning...','scanning');sendToGroq(b64,groqKey,ocrKey);}
+      else if(ocrKey){setEngineStatus('ocr','waiting');sendInstToOCR(b64,ocrKey);}
+      else{setEngineStatus('tess','waiting');sendToOfflineOCR(b64,'inst');}
+    });
+}
+
+function sendToGroq(b64,groqKey,ocrKey){
+  const b64data=b64.replace(/^data:image\/(png|jpeg|jpg);base64,/,'');
+  const body={model:'llava-v1.5-7b-4096-preview',messages:[{role:'user',content:[
+    {type:'text',text:'Extract ONLY 11-digit numbers from this image. Return ONLY the numbers, one per line. If none found, return NONE.'},
+    {type:'image_url',image_url:{url:'data:image/jpeg;base64,'+b64data}}
+  ]}],max_tokens:200};
+  fetch('https://api.groq.com/openai/v1/chat/completions',
+    {method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+groqKey},body:JSON.stringify(body)})
+    .then(res=>res.json())
+    .then(data=>{
+      const text=data?.choices?.[0]?.message?.content||'';
+      if(text&&text!=='NONE'&&text.trim()){
+        setEngineStatus('groq','active');processOCRText(text,'inst');
+      }else{
+        setEngineStatus('groq','failed');
+        if(ocrKey){setEngineStatus('ocr','waiting');showInstOcrStatus('📷 OCR.space scanning...','scanning');sendInstToOCR(b64,ocrKey);}
+        else{setEngineStatus('tess','waiting');sendToOfflineOCR(b64,'inst');}
+      }
+    })
+    .catch(()=>{
+      setEngineStatus('groq','failed');
+      if(ocrKey){setEngineStatus('ocr','waiting');sendInstToOCR(b64,ocrKey);}
+      else{setEngineStatus('tess','waiting');sendToOfflineOCR(b64,'inst');}
+    });
+}
+
+function sendInstToOCR(b64,ocrKey){
+  const b64data=b64.replace(/^data:image\/(png|jpeg|jpg);base64,/,'');
+  const fd=new FormData();
+  fd.append('base64Image','data:image/jpeg;base64,'+b64data);
+  fd.append('apikey',ocrKey);fd.append('language','eng');
+  fd.append('isOverlayRequired','false');fd.append('OCREngine','2');
+  fetch('https://api.ocr.space/parse/image',{method:'POST',body:fd})
+    .then(res=>res.json())
+    .then(data=>{
+      if(data.IsErroredOnProcessing){setEngineStatus('ocr','failed');setEngineStatus('tess','waiting');sendToOfflineOCR(b64,'inst');return;}
+      const text=data.ParsedResults?.[0]?.ParsedText||'';
+      setEngineStatus('ocr','active');processOCRText(text,'inst');
+    })
+    .catch(()=>{setEngineStatus('ocr','failed');setEngineStatus('tess','waiting');sendToOfflineOCR(b64,'inst');});
+}
+
+function processInstantResult(groups){
+  if(groups.length===0){
+    showInstOcrStatus('⚠️ No 11-digit number found in this scan','error');
+    document.getElementById('instResult').innerHTML='⚠️ No number found<div class="sub">Adjust position and wait for next scan</div>';
+    document.getElementById('instResult').className='';
+    return;
+  }
+  const num=groups[0];
+  checkDuplicate(num);
+  const found=accountsSet.has(num);
+  // Show result
+  const el=document.getElementById('instResult');
+  el.className='';
+  el.innerHTML=(found?'✅ FOUND':'❌ NOT FOUND')+'<div class="sub">'+num+'</div>';
+  if(found)el.classList.add('r-found');else el.classList.add('r-miss');
+  showInstOcrStatus(found?'✅ FOUND: '+num:'❌ NOT FOUND: '+num,found?'done':'error');
+  // Feedback
+  speakResult(found);vibrateResult(found);playSound(found);
+  // Save
+  addHistory(num,'⚡ Instant',found);addReport('instant',found);
+  if(!found)addNotFound(num,'⚡ Instant');
+  updateSession(found);
+  instCheckedCount++;if(found)instFoundCount++;
+  document.getElementById('instChecked').textContent=instCheckedCount;
+  document.getElementById('instFound').textContent=instFoundCount;
+  // Update history
+  const arr=getHistory(),empty='<div class="history-empty">No scans yet</div>';
+  const html=arr.length===0?empty:arr.slice(0,5).map(h=>`<div class="history-item"><span class="hi-num">${h.number}</span><span class="hi-method">${h.method}</span><span class="hi-time">${h.time}</span><span class="${h.found?'hi-found':'hi-miss'}">${h.found?'✅':'❌'}</span></div>`).join('');
+  const hl=document.getElementById('instHistoryList');if(hl)hl.innerHTML=html;
+}
+
+// ============================================================
+// HANDS FREE
+// ============================================================
+function openHandsFree(){
+  if(accountsSet.size===0){alert('⚠️ Please load accounts first!');return;}
+  document.getElementById('handsScreen').classList.add('active');
+  document.body.style.overflow='hidden';renderHistory();
+}
+function closeHandsFree(){
+  if(handsRecog){handsRecog.stop();handsRecog=null;}
+  document.getElementById('handsCircle').classList.remove('listening');
+  document.getElementById('handsScreen').classList.remove('active');
+  document.body.style.overflow='';
+}
+function startHandsFree(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){alert('⚠️ Voice not supported! Use Chrome on Android.');return;}
+  if(handsRecog){handsRecog.stop();handsRecog=null;document.getElementById('handsCircle').classList.remove('listening');document.getElementById('handsStatus').textContent='Tap mic to start';return;}
+  handsRecog=new SR();handsRecog.lang='en-US';handsRecog.continuous=false;handsRecog.interimResults=false;
+  handsRecog.onstart=()=>{document.getElementById('handsCircle').classList.add('listening');document.getElementById('handsStatus').textContent='🎙️ Listening... Speak now!';};
+  handsRecog.onresult=(e)=>{
+    const transcript=e.results[0][0].transcript,digits=extractDigitsFromSpeech(transcript);
+    document.getElementById('handsNumber').textContent=digits;
+    document.getElementById('handsExtracted').style.display='block';
+    if(digits.length===11){
+      document.getElementById('handsStatus').textContent='✅ Got 11 digits — Searching...';
+      checkDuplicate(digits);const found=accountsSet.has(digits);
+      setHandsResult(found?'✅ FOUND':'❌ NOT FOUND',digits,found);
+      speakResult(found);vibrateResult(found);playSound(found);
+      addHistory(digits,'🗣️ Hands',found);addReport('voice',found);
+      if(!found)addNotFound(digits,'🗣️ Hands');updateSession(found);
+    }else{document.getElementById('handsStatus').textContent='⚠️ Got '+digits.length+' digits — need 11. Tap to retry.';}
+    handsRecog=null;document.getElementById('handsCircle').classList.remove('listening');
+  };
+  handsRecog.onerror=(e)=>{document.getElementById('handsStatus').textContent='❌ '+e.error+'. Tap to retry.';document.getElementById('handsCircle').classList.remove('listening');handsRecog=null;};
+  handsRecog.onend=()=>{document.getElementById('handsCircle').classList.remove('listening');handsRecog=null;};
+  handsRecog.start();
+}
+function setHandsResult(msg,sub,found){
+  const el=document.getElementById('handsResult');el.className='mic-result';
+  el.innerHTML=msg+(sub?'<div class="sub">'+sub+'</div>':'');
+  if(found===true)el.classList.add('r-found');if(found===false)el.classList.add('r-miss');
+}
+function extractDigitsFromSpeech(text){
+  const wm={'zero':'0','one':'1','two':'2','three':'3','four':'4','five':'5','six':'6','seven':'7','eight':'8','nine':'9','to':'2','for':'4','won':'1','tree':'3','niner':'9','oh':'0','o':'0'};
+  let r=text.toLowerCase();Object.keys(wm).forEach(w=>{r=r.replace(new RegExp('\\b'+w+'\\b','g'),wm[w]);});return r.replace(/[^0-9]/g,'');
+}
+
+// ============================================================
+// MIC SEARCH
+// ============================================================
+function openMic(){
+  if(accountsSet.size===0){alert('⚠️ Please load accounts first!');return;}
+  document.getElementById('micScreen').classList.add('active');document.body.style.overflow='hidden';
+}
+function closeMic(){
+  if(micRecog){micRecog.stop();micRecog=null;}
+  document.getElementById('micCircle').classList.remove('listening');
+  document.getElementById('micScreen').classList.remove('active');document.body.style.overflow='';
+}
+function startMicListen(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){alert('⚠️ Voice not supported! Use Chrome on Android.');return;}
+  if(micRecog){micRecog.stop();micRecog=null;document.getElementById('micCircle').classList.remove('listening');document.getElementById('micStatus').textContent='Tap mic to start';return;}
+  micRecog=new SR();micRecog.lang='en-US';micRecog.continuous=false;micRecog.interimResults=false;
+  micRecog.onstart=()=>{document.getElementById('micCircle').classList.add('listening');document.getElementById('micStatus').textContent='🎙️ Listening...';};
+  micRecog.onresult=(e)=>{
+    const transcript=e.results[0][0].transcript,digits=extractDigitsFromSpeech(transcript);
+    document.getElementById('micNumber').value=digits;
+    document.getElementById('micExtracted').style.display='block';
+    document.getElementById('micSearchBtn').style.display='block';
+    document.getElementById('micStatus').textContent='Heard: "'+transcript+'" → '+digits;
+    document.getElementById('micCircle').classList.remove('listening');micRecog=null;
+  };
+  micRecog.onerror=(e)=>{document.getElementById('micStatus').textContent='❌ '+e.error;document.getElementById('micCircle').classList.remove('listening');micRecog=null;};
+  micRecog.onend=()=>{document.getElementById('micCircle').classList.remove('listening');micRecog=null;};
+  micRecog.start();
+}
+function searchMicNumber(){
+  const num=document.getElementById('micNumber').value.trim();
+  if(num.length!==11||!/^\d{11}$/.test(num)){alert('⚠️ Need exactly 11 digits!');return;}
+  checkDuplicate(num);const found=accountsSet.has(num);
+  const el=document.getElementById('micResult');el.className='mic-result';
+  el.innerHTML=(found?'✅ FOUND':'❌ NOT FOUND')+'<div class="sub">'+num+'</div>';
+  if(found)el.classList.add('r-found');else el.classList.add('r-miss');
+  speakResult(found);vibrateResult(found);playSound(found);
+  addHistory(num,'🎤 Mic',found);addReport('voice',found);
+  if(!found)addNotFound(num,'🎤 Mic');updateSession(found);
+}
+
+// ============================================================
+// ONLINE STATUS
+// ============================================================
+function updateOnlineStatus(){
+  const b=document.getElementById('offlineBanner');
+  if(b){if(!navigator.onLine)b.classList.add('show');else b.classList.remove('show');}
+}
+window.addEventListener('online',updateOnlineStatus);
+window.addEventListener('offline',updateOnlineStatus);
+
+// ============================================================
+// PWA
+// ============================================================
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});}
+
+// ============================================================
+// INIT
+// ============================================================
+
+// ============================================================
+// GOOGLE SHEET FUNCTIONS
+// ============================================================
+function getSheetUrl(){return localStorage.getItem('aofSheetUrl')||'';}
+
+function testSheetUrl(){
+  const url=getSheetUrl();
+  const btn=document.getElementById('sheetConnectBtn');
+  const statusEl=document.getElementById('sheetUrlStatus');
+  if(!url){
+    if(btn){btn.textContent='🔴 NOT CONNECTED — Paste URL first!';btn.style.background='linear-gradient(135deg,#e53935,#b71c1c)';}
+    if(statusEl)statusEl.textContent='⚠️ Please paste and save URL first!';
+    return;
+  }
+  if(btn){btn.textContent='🔄 Testing...';btn.style.background='linear-gradient(135deg,#FF9800,#F57C00)';}
+  if(statusEl)statusEl.textContent='🔄 Testing connection...';
+  fetch(url+'?action=test')
+    .then(r=>r.json())
+    .then(d=>{
+      if(btn){btn.textContent='🟢 CONNECTED ✅ Google Sheet Working!';btn.style.background='linear-gradient(135deg,#4CAF50,#2e7d32)';}
+      if(statusEl)statusEl.textContent='✅ Connected! Device security active!';
+      localStorage.setItem('aofSheetConnected','true');
+    })
+    .catch(()=>{
+      if(btn){btn.textContent='🔴 NOT CONNECTED ❌ Check URL!';btn.style.background='linear-gradient(135deg,#e53935,#b71c1c)';}
+      if(statusEl)statusEl.textContent='❌ Connection failed! Check URL.';
+      localStorage.setItem('aofSheetConnected','false');
+    });
+}
+
+function refreshDeviceList(){
+  const url=getSheetUrl();
+  const el=document.getElementById('deviceList');
+  if(!el)return;
+  if(!url){
+    el.innerHTML='<div style="background:#fff3e0;border:2px solid #FF9800;border-radius:10px;padding:12px;text-align:center;font-size:12px;color:#e65100;font-weight:700;">⚠️ Please paste Google Apps Script URL first!<br>Then tap SAVE and TEST</div>';
+    return;
+  }
+  el.innerHTML='<div style="text-align:center;padding:16px;font-size:13px;color:#1565C0;font-weight:700;">🔄 Loading devices...</div>';
+  fetch(url+'?action=list',{redirect:'follow'})
+    .then(function(r){
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      return r.text();
+    })
+    .then(function(text){
+      var data;
+      try{data=JSON.parse(text);}
+      catch(e){throw new Error('Bad response: '+text.slice(0,50));}
+      if(!data.devices||data.devices.length===0){
+        el.innerHTML='<div style="text-align:center;padding:16px;font-size:13px;color:#888;">📭 No devices yet!<br><small>When team opens app they appear here</small></div>';
+        return;
+      }
+      data.devices.sort((a,b)=>{const o={pending:0,approved:1,blocked:2};return(o[a.status]||0)-(o[b.status]||0);});
+      el.innerHTML=data.devices.map(function(dev){
+        var sc=dev.status==='approved'?'status-approved':dev.status==='blocked'?'status-blocked':'status-pending';
+        var st=dev.status==='approved'?'Active':dev.status==='blocked'?'Blocked':'Pending';
+        var appBtn=dev.status!=='approved'?'<button class="dev-btn dev-approve" onclick="approveDevice(this)" data-id="'+dev.deviceId+'">APPROVE</button>':'';
+        var blkBtn=dev.status!=='blocked'?'<button class="dev-btn dev-block" onclick="blockDevice(this)" data-id="'+dev.deviceId+'">BLOCK</button>':'';
+        var delBtn='<button class="dev-btn dev-delete" onclick="deleteDevice(this)" data-id="'+dev.deviceId+'">DEL</button>';
+        return '<div class="device-card '+dev.status+'"><div class="device-top"><span class="device-name">'+( dev.name||'Device')+'</span><span class="device-status '+sc+'">'+st+'</span></div><div class="device-info">ID: '+dev.deviceId+'</div><div class="device-actions">'+appBtn+blkBtn+delBtn+'</div></div>';
+      }).join('');
+    })
+    .catch(function(err){
+      el.innerHTML='<div style="background:#fce4ec;border:2px solid #e53935;border-radius:10px;padding:12px;text-align:center;font-size:12px;color:#c62828;font-weight:700;">❌ Cannot load!<br><small>'+err.message+'</small><br><button onclick="refreshDeviceList()" style="margin-top:8px;padding:8px 16px;border:none;border-radius:8px;background:#2196F3;color:#fff;font-weight:800;cursor:pointer;">🔄 RETRY</button></div>';
+    });
+}
+
+function approveDevice(btn){
+  var deviceId=btn.getAttribute('data-id');
+  const url=getSheetUrl();if(!url)return;
+  fetch(url+'?action=update&deviceId='+encodeURIComponent(deviceId)+'&status=approved')
+    .then(function(){alert('Approved!');refreshDeviceList();})
+    .catch(function(){alert('Failed!');});
+}
+function blockDevice(btn){
+  var deviceId=btn.getAttribute('data-id');
+  const url=getSheetUrl();if(!url)return;
+  fetch(url+'?action=update&deviceId='+encodeURIComponent(deviceId)+'&status=blocked')
+    .then(function(){alert('Blocked!');refreshDeviceList();})
+    .catch(function(){alert('Failed!');});
+}
+function deleteDevice(btn){
+  var deviceId=btn.getAttribute('data-id');
+  if(!confirm('Delete?'))return;
+  const url=getSheetUrl();if(!url)return;
+  fetch(url+'?action=delete&deviceId='+encodeURIComponent(deviceId))
+    .then(function(){alert('Deleted!');refreshDeviceList();})
+    .catch(function(){alert('Failed!');});
+}
+function clearAllDevices(){
+  if(!confirm('Clear ALL devices?'))return;
+  const url=getSheetUrl();if(!url){alert('Set Sheet URL first!');return;}
+  fetch(url+'?action=clearAll')
+    .then(()=>{alert('✅ All cleared!');refreshDeviceList();})
+    .catch(()=>alert('❌ Failed!'));
+}
+function registerDevice(devId,url){
+  const ua=navigator.userAgent;
+  const name=ua.includes('iPhone')?'iPhone':ua.includes('Samsung')?'Samsung':ua.includes('Redmi')?'Redmi':ua.includes('Android')?'Android':'PC/Desktop';
+  fetch(url+'?action=register&deviceId='+encodeURIComponent(devId)+'&deviceName='+encodeURIComponent(name)+'&time='+encodeURIComponent(new Date().toLocaleString('en-IN'))).catch(()=>{});
+}
+
+window.onload=function(){
+  // ALWAYS hide activation screen first
+  document.getElementById('activationScreen').classList.remove('active');
+  
+  toggleLoadMode();
+  renderHistory();
+  loadSession();
+  updateOnlineStatus();
+  const r=getReport();dupCount=r.dup||0;
+  const hasSaved=loadSavedAccounts();
+  if(!hasSaved){
+    document.getElementById('loadSection').style.display='block';
+    document.getElementById('inputSection').style.display='none';
+  }
+  
+  // Check activation ONLY if Google Sheet URL is set
+  const sheetUrl=localStorage.getItem('aofSheetUrl')||'';
+  if(sheetUrl){
+    // Wait 1 second then check
+    setTimeout(checkActivation,1000);
+  }
+  
+  // Auto sync
+  setTimeout(autoSyncOnOpen,2000);
+};
 </script>
-
 </body>
 </html>
