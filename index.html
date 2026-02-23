@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>AOF Finder v6 - SUSINFO</title>
+<title>AOF Finder v6 - SUSINFO [BUILD 007]</title>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Segoe UI',Tahoma,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#0f3460 100%);min-height:100vh;display:flex;justify-content:center;padding:12px 10px 30px;}
@@ -253,7 +253,7 @@ textarea:focus{border-color:#2196F3;}
 .signal-warn{background:#fff3e0;border:2px solid #FF9800;border-radius:8px;padding:8px 12px;font-size:12px;color:#e65100;font-weight:700;margin-bottom:8px;display:none;}
 .signal-warn.show{display:block;}
 /* TAP COUNTER */
-.tap-hint{font-size:9px;color:#ccc;text-align:center;margin-top:2px;height:12px;}
+.tap-hint{font-size:11px;color:#2196F3;text-align:center;margin-top:4px;height:16px;font-weight:700;transition:all 0.2s;}
 </style>
 </head>
 <body>
@@ -316,6 +316,7 @@ textarea:focus{border-color:#2196F3;}
   <div class="header" id="mainHeader" onclick="headerTap()">
     <h1>🔍 AOF Finder v6</h1>
     <p>SUSINFO — World Class Edition</p>
+    <p style="font-size:10px;color:#2196F3;font-weight:800;margin-top:2px;">BUILD 007 • 23-Feb-2026</p>
     <div class="tap-hint" id="tapHint"></div>
   </div>
   <div class="sync-banner" id="syncBanner"></div>
@@ -358,7 +359,7 @@ textarea:focus{border-color:#2196F3;}
       <div id="historyList"><div class="history-empty">No searches yet</div></div>
     </div>
   </div>
-  <div class="footer">Developed by <strong>SUSINFO</strong> • AOF Finder v6.0</div>
+  <div class="footer">Developed by <strong>SUSINFO</strong> • <span id="adminSecretBtn" onclick="adminSecretClick()" style="cursor:pointer;color:#1a1a2e;">AOF Finder v6.0</span> • <strong style="color:#2196F3;">BUILD 007</strong></div>
 </div>
 
 <!-- CAMERA SCREEN -->
@@ -574,7 +575,7 @@ textarea:focus{border-color:#2196F3;}
     </div>
     <div class="settings-section">
       <div class="settings-section-title">ℹ️ App Info</div>
-      <div class="setting-row"><span class="setting-label">Version</span><span class="setting-value">v6.0</span></div>
+      <div class="setting-row"><span class="setting-label">Version</span><span class="setting-value">v6.0 BUILD 007</span></div>
       <div class="setting-row"><span class="setting-label">Developer</span><span class="setting-value">SUSINFO</span></div>
       <div class="setting-row"><span class="setting-label">Max Records</span><span class="setting-value">2,00,000</span></div>
       <div class="setting-row"><span class="setting-label">Security</span><span class="setting-value">Device Approval</span></div>
@@ -795,14 +796,34 @@ function getAdminPin(){return localStorage.getItem('aofAdminPin')||DEFAULT_PIN;}
 function headerTap(){
   headerTapCount++;
   const hint=document.getElementById('tapHint');
+  if(!hint)return;
   if(headerTapTimer)clearTimeout(headerTapTimer);
-  const remaining=7-headerTapCount;
-  if(remaining>0&&remaining<=4)hint.textContent='Tap '+(remaining)+' more times...';
+  hint.textContent='🔐 '+headerTapCount+' / 7';
+  hint.style.color='#2196F3';
   if(headerTapCount>=7){
-    headerTapCount=0;hint.textContent='';
-    openAdminPin();return;
+    headerTapCount=0;
+    hint.textContent='✅ Admin Opening!';
+    hint.style.color='#4CAF50';
+    setTimeout(()=>{hint.textContent='';},2000);
+    openAdminPin();
+    return;
   }
-  headerTapTimer=setTimeout(()=>{headerTapCount=0;hint.textContent='';},2000);
+  headerTapTimer=setTimeout(()=>{
+    headerTapCount=0;
+    hint.textContent='';
+  },3000);
+}
+// SECRET FOOTER CLICK - backup method (click "AOF Finder v6.0" in footer 3 times)
+let footerClickCount=0,footerClickTimer=null;
+function adminSecretClick(){
+  footerClickCount++;
+  if(footerClickTimer)clearTimeout(footerClickTimer);
+  if(footerClickCount>=3){
+    footerClickCount=0;
+    openAdminPin();
+    return;
+  }
+  footerClickTimer=setTimeout(()=>{footerClickCount=0;},2000);
 }
 function openAdminPin(){
   currentPin='';updatePinDots();
