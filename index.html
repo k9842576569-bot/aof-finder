@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>AOF Finder v6 - SUSINFO [BUILD 010]</title>
+<title>AOF Finder v6 - SUSINFO [BUILD 011]</title>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Segoe UI',Tahoma,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#0f3460 100%);min-height:100vh;display:flex;justify-content:center;padding:12px 10px 30px;}
@@ -316,7 +316,7 @@ textarea:focus{border-color:#2196F3;}
   <div class="header" id="mainHeader" onclick="headerTap()">
     <h1>🔍 AOF Finder v6</h1>
     <p>SUSINFO — World Class Edition</p>
-    <p style="font-size:10px;color:#2196F3;font-weight:800;margin-top:2px;">BUILD 010 • 23-Feb-2026</p>
+    <p style="font-size:10px;color:#2196F3;font-weight:800;margin-top:2px;">BUILD 011 • 23-Feb-2026</p>
     <div class="tap-hint" id="tapHint"></div>
   </div>
   <div class="sync-banner" id="syncBanner"></div>
@@ -360,7 +360,7 @@ textarea:focus{border-color:#2196F3;}
       <div id="historyList"><div class="history-empty">No searches yet</div></div>
     </div>
   </div>
-  <div class="footer">Developed by <strong>SUSINFO</strong> • AOF Finder v6.0 • <strong style="color:#2196F3;">BUILD 010</strong></div>
+  <div class="footer">Developed by <strong>SUSINFO</strong> • AOF Finder v6.0 • <strong style="color:#2196F3;">BUILD 011</strong></div>
   <button onclick="openAdminPin()" style="width:100%;margin-top:8px;padding:12px;border:2px dashed #ccc;border-radius:12px;background:#f8f9fa;color:#bbb;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;">⚙️ SYSTEM CONFIG</button>
 </div>
 
@@ -577,7 +577,7 @@ textarea:focus{border-color:#2196F3;}
     </div>
     <div class="settings-section">
       <div class="settings-section-title">ℹ️ App Info</div>
-      <div class="setting-row"><span class="setting-label">Version</span><span class="setting-value">v6.0 BUILD 010</span></div>
+      <div class="setting-row"><span class="setting-label">Version</span><span class="setting-value">v6.0 BUILD 011</span></div>
       <div class="setting-row"><span class="setting-label">Developer</span><span class="setting-value">SUSINFO</span></div>
       <div class="setting-row"><span class="setting-label">Max Records</span><span class="setting-value">2,00,000</span></div>
       <div class="setting-row"><span class="setting-label">Security</span><span class="setting-value">Device Approval</span></div>
@@ -1828,23 +1828,28 @@ if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.s
 // INIT
 // ============================================================
 window.onload=function(){
-  // Register/check device
-  const devId=getDeviceId();
-  const devices=getDevices();
-  // If no devices at all — this is first device (admin device) — auto approve
-  if(Object.keys(devices).length===0){
-    devices[devId]={id:devId,status:'approved',time:new Date().toLocaleString('en-IN'),name:'Admin Device'};
-    saveDevices(devices);
-  }
-  checkActivation();
+  // ALWAYS hide activation screen first
+  document.getElementById('activationScreen').classList.remove('active');
+  
   toggleLoadMode();
   renderHistory();
   loadSession();
   updateOnlineStatus();
   const r=getReport();dupCount=r.dup||0;
   const hasSaved=loadSavedAccounts();
-  if(!hasSaved){document.getElementById('loadSection').style.display='block';document.getElementById('inputSection').style.display='none';}
-  // Auto sync on open
+  if(!hasSaved){
+    document.getElementById('loadSection').style.display='block';
+    document.getElementById('inputSection').style.display='none';
+  }
+  
+  // Check activation ONLY if Google Sheet URL is set
+  const sheetUrl=localStorage.getItem('aofSheetUrl')||'';
+  if(sheetUrl){
+    // Wait 1 second then check
+    setTimeout(checkActivation,1000);
+  }
+  
+  // Auto sync
   setTimeout(autoSyncOnOpen,2000);
 };
 </script>
