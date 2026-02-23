@@ -1922,7 +1922,7 @@ function registerDevice(devId,url){
   fetch(url+'?action=register&deviceId='+encodeURIComponent(devId)+'&deviceName='+encodeURIComponent(name)+'&time='+encodeURIComponent(new Date().toLocaleString('en-IN'))).catch(()=>{});
 }
 
-window.onload=function(){
+document.addEventListener("DOMContentLoaded", function(){
   // ALWAYS hide activation screen first
   document.getElementById('activationScreen').classList.remove('active');
   
@@ -1946,7 +1946,7 @@ window.onload=function(){
   
   // Auto sync
   setTimeout(autoSyncOnOpen,2000);
-};
+});
 </script>
 </body>
 </html>
