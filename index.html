@@ -936,7 +936,7 @@ function checkPin(){
     if(b1)b1.style.display='block';
     if(b2)b2.style.display='block';
     hideActivationScreen();
-    setPinError('🔑 Fetching keys from sheet...');
+    setPinError('🔑 Fetching keys...');
     loginSuccess(true, function(){
       setPinError('');
       showPinScreen(false);
