@@ -2,9 +2,6 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#1a1a2e">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -313,7 +310,7 @@ textarea:focus{border-color:#2196F3;}
       <button class="pin-key del" onclick="pinDel()">⌫</button>
       <button class="pin-key zero" onclick="pinKey('0')">0</button>
     </div>
-    <div style="font-size:10px;color:#bbb;text-align:center;margin-top:8px;">SUSINFO • BUILD 031</div>
+    <div style="font-size:10px;color:#bbb;text-align:center;margin-top:8px;">SUSINFO • BUILD 032</div>
   </div>
 </div>
 
@@ -322,7 +319,7 @@ textarea:focus{border-color:#2196F3;}
   <div class="header" id="mainHeader" onclick="headerTap()">
     <h1>🔍 AOF Finder v6</h1>
     <p>SUSINFO — World Class Edition</p>
-    <p style="font-size:10px;color:#2196F3;font-weight:800;margin-top:2px;">BUILD 031 • 23-Feb-2026</p>
+    <p style="font-size:10px;color:#2196F3;font-weight:800;margin-top:2px;">BUILD 032 • 23-Feb-2026</p>
     <div class="tap-hint" id="tapHint"></div>
   </div>
   <div class="sync-banner" id="syncBanner"></div>
@@ -366,7 +363,7 @@ textarea:focus{border-color:#2196F3;}
       <div id="historyList"><div class="history-empty">No searches yet</div></div>
     </div>
   </div>
-  <div class="footer">Developed by <strong>SUSINFO</strong> • AOF Finder v6.0 • <strong style="color:#2196F3;">BUILD 031</strong></div>
+  <div class="footer">Developed by <strong>SUSINFO</strong> • AOF Finder v6.0 • <strong style="color:#2196F3;">BUILD 032</strong></div>
   <button onclick="sysConfigClick()" style="width:100%;margin-top:8px;padding:12px;border:2px dashed #ccc;border-radius:12px;background:#f8f9fa;color:#bbb;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;display:none;" id="adminConfigBtn2">⚙️ SYSTEM CONFIG</button>
 </div>
 
@@ -583,7 +580,7 @@ textarea:focus{border-color:#2196F3;}
     </div>
     <div class="settings-section">
       <div class="settings-section-title">ℹ️ App Info</div>
-      <div class="setting-row"><span class="setting-label">Version</span><span class="setting-value">v6.0 BUILD 031</span></div>
+      <div class="setting-row"><span class="setting-label">Version</span><span class="setting-value">v6.0 BUILD 032</span></div>
       <div class="setting-row"><span class="setting-label">Developer</span><span class="setting-value">SUSINFO</span></div>
       <div class="setting-row"><span class="setting-label">Max Records</span><span class="setting-value">2,00,000</span></div>
       <div class="setting-row"><span class="setting-label">Security</span><span class="setting-value">Device Approval</span></div>
@@ -944,21 +941,11 @@ function checkPin(){
     var b2=document.getElementById('adminConfigBtn2');
     if(b1)b1.style.display='block';
     if(b2)b2.style.display='block';
-    setPinError('🔑 Loading keys...');
-    var adminCfgUrl=getSheetUrl();
-    function adminUnlock(){showPinScreen(false);hideActivationScreen();openAdminPanel();}
-    fetch(adminCfgUrl+'?action=getConfig&key=AOF_FINDER',{redirect:'follow'})
-      .then(function(r){return r.json();})
-      .then(function(cfg){
-        if(!cfg.error){
-          if(cfg.geminiKey){localStorage.setItem('aofGeminiKey',cfg.geminiKey);}
-          if(cfg.groqKey){localStorage.setItem('aofGroqKey',cfg.groqKey);}
-          if(cfg.ocrKey){localStorage.setItem('ocrApiKey',cfg.ocrKey);}
-          if(cfg.scriptUrl){localStorage.setItem('aofSheetUrl',cfg.scriptUrl);}
-        }
-        adminUnlock();
-      })
-      .catch(function(){adminUnlock();});
+    showPinScreen(false);
+    hideActivationScreen();
+    openAdminPanel();
+    // Fetch all keys at login
+    loginSuccess(true);
     return;
   }
 
@@ -1019,22 +1006,10 @@ function checkPin(){
           var b2=document.getElementById('adminConfigBtn2');
           if(b1)b1.style.display='none';
           if(b2)b2.style.display='none';
-          setPinError('🔑 Loading keys...');
-          var teamCfgUrl=getSheetUrl();
-          function teamUnlock(){showPinScreen(false);hideActivationScreen();}
-          fetch(teamCfgUrl+'?action=getConfig&key=AOF_FINDER',{redirect:'follow'})
-            .then(function(r){return r.json();})
-            .then(function(cfg){
-              if(!cfg.error){
-                if(cfg.geminiKey){localStorage.setItem('aofGeminiKey',cfg.geminiKey);}
-                if(cfg.groqKey){localStorage.setItem('aofGroqKey',cfg.groqKey);}
-                if(cfg.ocrKey){localStorage.setItem('ocrApiKey',cfg.ocrKey);}
-                if(cfg.scriptUrl){localStorage.setItem('aofSheetUrl',cfg.scriptUrl);}
-              }
-              teamUnlock();
-            })
-            .catch(function(){teamUnlock();});
-          return;
+          showPinScreen(false);
+          hideActivationScreen();
+          // Fetch all keys at login
+          loginSuccess(false);
         }else if(data.status==='locked'){
           showPinScreen(false);showActivationScreen('locked');
         }else if(data.status==='blocked'){
@@ -1125,36 +1100,7 @@ function saveAdminKey(type){
   const val=document.getElementById(map[type]).value.trim();
   if(!val){alert('Please paste the API key first!');return;}
   localStorage.setItem(storMap[type],val);
-  updateKeyStatus();
-  var url=getSheetUrl();
-  if(!url){alert('✅ Saved locally!');return;}
-  var gk=localStorage.getItem('aofGeminiKey')||'';
-  var grk=localStorage.getItem('aofGroqKey')||'';
-  var ok=localStorage.getItem('ocrApiKey')||'';
-  var saveUrl=url+'?action=saveConfig&key=AOF_FINDER&password=8700'+
-    '&geminiKey='+encodeURIComponent(gk)+
-    '&groqKey='+encodeURIComponent(grk)+
-    '&ocrKey='+encodeURIComponent(ok)+
-    '&scriptUrl='+encodeURIComponent(url);
-  var st=document.getElementById('keysLoadStatus');
-  if(st)st.textContent='⏳ Saving to Google Sheet...';
-  fetch(saveUrl,{redirect:'follow'})
-    .then(function(r){return r.json();})
-    .then(function(data){
-      if(data.status==='saved'){
-        if(st)st.textContent='✅ Saved to Sheet! All devices will get this key.';
-        alert('✅ '+type.toUpperCase()+' key saved to Google Sheet! All team devices will fetch it on next login.');
-      }else{
-        if(st)st.textContent='⚠️ '+(data.error||'Sheet save failed');
-        alert('✅ Saved locally. Sheet sync failed: '+(data.error||'unknown'));
-      }
-      setTimeout(function(){if(st)st.textContent='';},4000);
-    })
-    .catch(function(){
-      if(st)st.textContent='⚠️ Saved locally only';
-      alert('✅ Saved locally. Could not reach Google Sheet.');
-      setTimeout(function(){if(st)st.textContent='';},4000);
-    });
+  updateKeyStatus();alert('✅ '+type.toUpperCase()+' key saved!');
 }
 function clearAdminKey(type){
   const storMap={gemini:'aofGeminiKey',groq:'aofGroqKey',ocr:'ocrApiKey'};
@@ -1165,8 +1111,8 @@ function clearAdminKey(type){
 }
 function loadAdminKeys(){
   // First load from localStorage (instant)
-  var gk=localStorage.getItem('aofGeminiKey')||'';
-  var grk=localStorage.getItem('aofGroqKey')||'';
+  var gk=localStorage.getItem('geminiApiKey')||localStorage.getItem('aofGeminiKey')||'';
+  var grk=localStorage.getItem('groqApiKey')||localStorage.getItem('aofGroqKey')||'';
   var ok=localStorage.getItem('ocrApiKey')||'';
   var gkEl=document.getElementById('adminGeminiKey');
   var grkEl=document.getElementById('adminGroqKey');
@@ -1175,38 +1121,8 @@ function loadAdminKeys(){
   if(grkEl)grkEl.value=grk;
   if(okEl)okEl.value=ok;
   updateKeyStatus();
-  // Then fetch fresh from Google Sheet
-  var url=getSheetUrl();
-  if(!url)return;
-  var loadBtn=document.getElementById('keysLoadStatus');
-  if(loadBtn)loadBtn.textContent='🔄 Loading keys from sheet...';
-  fetch(url+'?action=getConfig&key=AOF_FINDER',{redirect:'follow'})
-    .then(function(r){return r.json();})
-    .then(function(data){
-      if(data.error){
-        if(loadBtn)loadBtn.textContent='❌ '+data.error;
-        return;
-      }
-      if(data.geminiKey){
-        localStorage.setItem('aofGeminiKey',data.geminiKey);
-        if(gkEl)gkEl.value=data.geminiKey;
-      }
-      if(data.groqKey){
-        localStorage.setItem('aofGroqKey',data.groqKey);
-        if(grkEl)grkEl.value=data.groqKey;
-      }
-      if(data.ocrKey){
-        localStorage.setItem('ocrApiKey',data.ocrKey);
-        if(okEl)okEl.value=data.ocrKey;
-      }
-      if(loadBtn)loadBtn.textContent='✅ Keys loaded from Google Sheet!';
-      setTimeout(function(){if(loadBtn)loadBtn.textContent='';},3000);
-      updateKeyStatus();
-    })
-    .catch(function(){
-      if(loadBtn)loadBtn.textContent='⚠️ Using cached keys (sheet unreachable)';
-      setTimeout(function(){if(loadBtn)loadBtn.textContent='';},3000);
-    });
+  // Refresh from Sheet
+  loginSuccess(true);
 }
 function updateKeyStatus(){
   const gk=localStorage.getItem('aofGeminiKey')||'';
@@ -1681,7 +1597,7 @@ function sendToOnlineOCR(b64){
   if(!apiKey){
     // No OCR key — switch to Tesseract automatically
     showOcrStatus('🔄 Switching to offline OCR...','scanning');
-    setTimeout(function(){sendToOfflineOCR(b64,'cam');},300);
+    setTimeout(function(){runTesseractOcr();},300);
     return;
   }
   showOcrStatus('🌐 Online OCR scanning...','scanning');
@@ -2112,7 +2028,7 @@ if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.s
 // ============================================================
 // GOOGLE SHEET FUNCTIONS
 // ============================================================
-function getSheetUrl(){return localStorage.getItem('aofSheetUrl')||'https://script.google.com/macros/s/AKfycbwFojttNrbTsnB9IjGm6_zFwEIaYVxkaKVzokhRLSGVNVmOUfAsGtMAKwZ3vkQxkhJC/exec';}
+function getSheetUrl(){return localStorage.getItem('aofSheetUrl')||'https://script.google.com/macros/s/AKfycbxDhMBNITp4tefJoVhkEJLgDPC2w_DMS_P3D6doIQdZVX57G8iTydKwH9G6EStCG1xo/exec';}
 
 function testSheetUrl(){
   const url=getSheetUrl();
@@ -2286,6 +2202,47 @@ function checkActivationWithSheet(){
   checkActivation();
 }
 
+
+function loginSuccess(isAdminUser){
+  // Fetch ALL keys from Google Sheet on every login
+  var url=getSheetUrl();
+  if(!url)return;
+  fetch(url+'?action=getConfig&key=AOF_FINDER',{redirect:'follow'})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(data.error)return;
+      // Store ALL keys in localStorage
+      if(data.geminiKey){
+        localStorage.setItem('geminiApiKey',data.geminiKey);
+        localStorage.setItem('aofGeminiKey',data.geminiKey);
+      }
+      if(data.groqKey){
+        localStorage.setItem('groqApiKey',data.groqKey);
+        localStorage.setItem('aofGroqKey',data.groqKey);
+      }
+      if(data.ocrKey){
+        localStorage.setItem('ocrApiKey',data.ocrKey);
+      }
+      if(data.scriptUrl){
+        localStorage.setItem('aofSheetUrl',data.scriptUrl);
+      }
+      // If admin panel open — auto fill fields
+      if(isAdminUser){
+        var gkEl=document.getElementById('adminGeminiKey');
+        var grkEl=document.getElementById('adminGroqKey');
+        var okEl=document.getElementById('adminOcrKey');
+        if(gkEl&&data.geminiKey)gkEl.value=data.geminiKey;
+        if(grkEl&&data.groqKey)grkEl.value=data.groqKey;
+        if(okEl&&data.ocrKey)okEl.value=data.ocrKey;
+        var st=document.getElementById('keysLoadStatus');
+        if(st){st.textContent='✅ Keys loaded from Google Sheet!';setTimeout(function(){st.textContent='';},3000);}
+        updateKeyStatus();
+      }
+    })
+    .catch(function(){
+      // Use cached keys silently
+    });
+}
 function fetchConfigKeys(){
   var url=getSheetUrl();
   if(!url)return;
@@ -2293,8 +2250,8 @@ function fetchConfigKeys(){
     .then(function(r){return r.json();})
     .then(function(data){
       if(data.error){return;}
-      if(data.geminiKey){localStorage.setItem('aofGeminiKey',data.geminiKey);}
-      if(data.groqKey){localStorage.setItem('aofGroqKey',data.groqKey);}
+      if(data.geminiKey){localStorage.setItem('geminiApiKey',data.geminiKey);}
+      if(data.groqKey){localStorage.setItem('groqApiKey',data.groqKey);}
       if(data.ocrKey){localStorage.setItem('ocrApiKey',data.ocrKey);}
       if(data.scriptUrl){localStorage.setItem('aofSheetUrl',data.scriptUrl);}
       // Update key fields in admin panel if open
@@ -2313,7 +2270,7 @@ window.onload=function(){
   // Auto-save correct script URL if not already saved
   var savedUrl=localStorage.getItem('aofSheetUrl')||'';
   if(!savedUrl){
-    localStorage.setItem('aofSheetUrl','https://script.google.com/macros/s/AKfycbwFojttNrbTsnB9IjGm6_zFwEIaYVxkaKVzokhRLSGVNVmOUfAsGtMAKwZ3vkQxkhJC/exec');
+    localStorage.setItem('aofSheetUrl','https://script.google.com/macros/s/AKfycbxDhMBNITp4tefJoVhkEJLgDPC2w_DMS_P3D6doIQdZVX57G8iTydKwH9G6EStCG1xo/exec');
   }
   // Also update sheetScriptUrl field if admin panel open
   var urlField=document.getElementById('sheetScriptUrl');
