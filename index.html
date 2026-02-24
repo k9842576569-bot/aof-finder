@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>AOF Finder v6 - SUSINFO [BUILD 029]</title>
+<title>AOF Finder v6 - SUSINFO [BUILD 031]</title>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Segoe UI',Tahoma,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#0f3460 100%);min-height:100vh;display:flex;justify-content:center;padding:12px 10px 30px;}
@@ -310,7 +310,7 @@ textarea:focus{border-color:#2196F3;}
       <button class="pin-key del" onclick="pinDel()">⌫</button>
       <button class="pin-key zero" onclick="pinKey('0')">0</button>
     </div>
-    <div style="font-size:10px;color:#bbb;text-align:center;margin-top:8px;">SUSINFO • BUILD 029</div>
+    <div style="font-size:10px;color:#bbb;text-align:center;margin-top:8px;">SUSINFO • BUILD 031</div>
   </div>
 </div>
 
@@ -319,7 +319,7 @@ textarea:focus{border-color:#2196F3;}
   <div class="header" id="mainHeader" onclick="headerTap()">
     <h1>🔍 AOF Finder v6</h1>
     <p>SUSINFO — World Class Edition</p>
-    <p style="font-size:10px;color:#2196F3;font-weight:800;margin-top:2px;">BUILD 029 • 23-Feb-2026</p>
+    <p style="font-size:10px;color:#2196F3;font-weight:800;margin-top:2px;">BUILD 031 • 23-Feb-2026</p>
     <div class="tap-hint" id="tapHint"></div>
   </div>
   <div class="sync-banner" id="syncBanner"></div>
@@ -363,7 +363,7 @@ textarea:focus{border-color:#2196F3;}
       <div id="historyList"><div class="history-empty">No searches yet</div></div>
     </div>
   </div>
-  <div class="footer">Developed by <strong>SUSINFO</strong> • AOF Finder v6.0 • <strong style="color:#2196F3;">BUILD 029</strong></div>
+  <div class="footer">Developed by <strong>SUSINFO</strong> • AOF Finder v6.0 • <strong style="color:#2196F3;">BUILD 031</strong></div>
   <button onclick="sysConfigClick()" style="width:100%;margin-top:8px;padding:12px;border:2px dashed #ccc;border-radius:12px;background:#f8f9fa;color:#bbb;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;display:none;" id="adminConfigBtn2">⚙️ SYSTEM CONFIG</button>
 </div>
 
@@ -580,7 +580,7 @@ textarea:focus{border-color:#2196F3;}
     </div>
     <div class="settings-section">
       <div class="settings-section-title">ℹ️ App Info</div>
-      <div class="setting-row"><span class="setting-label">Version</span><span class="setting-value">v6.0 BUILD 029</span></div>
+      <div class="setting-row"><span class="setting-label">Version</span><span class="setting-value">v6.0 BUILD 031</span></div>
       <div class="setting-row"><span class="setting-label">Developer</span><span class="setting-value">SUSINFO</span></div>
       <div class="setting-row"><span class="setting-label">Max Records</span><span class="setting-value">2,00,000</span></div>
       <div class="setting-row"><span class="setting-label">Security</span><span class="setting-value">Device Approval</span></div>
@@ -1006,6 +1006,8 @@ function checkPin(){
           if(b2)b2.style.display='none';
           showPinScreen(false);
           hideActivationScreen();
+          // Fetch keys after login
+          fetchConfigKeys();
         }else if(data.status==='locked'){
           showPinScreen(false);showActivationScreen('locked');
         }else if(data.status==='blocked'){
@@ -1106,13 +1108,49 @@ function clearAdminKey(type){
   updateKeyStatus();alert('✅ '+type.toUpperCase()+' key cleared!');
 }
 function loadAdminKeys(){
-  const gk=localStorage.getItem('aofGeminiKey')||'';
-  const grk=localStorage.getItem('aofGroqKey')||'';
-  const ok=localStorage.getItem('ocrApiKey')||'';
-  document.getElementById('adminGeminiKey').value=gk;
-  document.getElementById('adminGroqKey').value=grk;
-  document.getElementById('adminOcrKey').value=ok;
+  // First load from localStorage (instant)
+  var gk=localStorage.getItem('geminiApiKey')||localStorage.getItem('aofGeminiKey')||'';
+  var grk=localStorage.getItem('groqApiKey')||localStorage.getItem('aofGroqKey')||'';
+  var ok=localStorage.getItem('ocrApiKey')||'';
+  var gkEl=document.getElementById('adminGeminiKey');
+  var grkEl=document.getElementById('adminGroqKey');
+  var okEl=document.getElementById('adminOcrKey');
+  if(gkEl)gkEl.value=gk;
+  if(grkEl)grkEl.value=grk;
+  if(okEl)okEl.value=ok;
   updateKeyStatus();
+  // Then fetch fresh from Google Sheet
+  var url=getSheetUrl();
+  if(!url)return;
+  var loadBtn=document.getElementById('keysLoadStatus');
+  if(loadBtn)loadBtn.textContent='🔄 Loading keys from sheet...';
+  fetch(url+'?action=getConfig&key=AOF_FINDER',{redirect:'follow'})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(data.error){
+        if(loadBtn)loadBtn.textContent='❌ '+data.error;
+        return;
+      }
+      if(data.geminiKey){
+        localStorage.setItem('geminiApiKey',data.geminiKey);
+        if(gkEl)gkEl.value=data.geminiKey;
+      }
+      if(data.groqKey){
+        localStorage.setItem('groqApiKey',data.groqKey);
+        if(grkEl)grkEl.value=data.groqKey;
+      }
+      if(data.ocrKey){
+        localStorage.setItem('ocrApiKey',data.ocrKey);
+        if(okEl)okEl.value=data.ocrKey;
+      }
+      if(loadBtn)loadBtn.textContent='✅ Keys loaded from Google Sheet!';
+      setTimeout(function(){if(loadBtn)loadBtn.textContent='';},3000);
+      updateKeyStatus();
+    })
+    .catch(function(){
+      if(loadBtn)loadBtn.textContent='⚠️ Using cached keys (sheet unreachable)';
+      setTimeout(function(){if(loadBtn)loadBtn.textContent='';},3000);
+    });
 }
 function updateKeyStatus(){
   const gk=localStorage.getItem('aofGeminiKey')||'';
@@ -1584,7 +1622,12 @@ function checkSignal(){
 function showOcrStatus(msg,type){const el=document.getElementById('ocrStatus');el.textContent=msg;el.className='ocr-status '+type;}
 function sendToOnlineOCR(b64){
   const apiKey=localStorage.getItem('ocrApiKey')||'';
-  if(!apiKey){alert('⚠️ Please enter OCR.space API key in ⚙️ Settings → Admin Panel!');return;}
+  if(!apiKey){
+    // No OCR key — switch to Tesseract automatically
+    showOcrStatus('🔄 Switching to offline OCR...','scanning');
+    setTimeout(function(){runTesseractOcr();},300);
+    return;
+  }
   showOcrStatus('🌐 Online OCR scanning...','scanning');
   if(ocrTimeoutId)clearTimeout(ocrTimeoutId);
   ocrTimeoutId=setTimeout(()=>{showOcrStatus('⏱️ Timeout! Switching to offline...','error');sendToOfflineOCR(b64,'cam');},15000);
@@ -2193,13 +2236,21 @@ function fetchConfigKeys(){
   fetch(url+'?action=getConfig&key=AOF_FINDER',{redirect:'follow'})
     .then(function(r){return r.json();})
     .then(function(data){
-      if(data.geminiKey) localStorage.setItem('geminiApiKey', data.geminiKey);
-      if(data.groqKey)   localStorage.setItem('groqApiKey',   data.groqKey);
-      if(data.ocrKey)    localStorage.setItem('ocrApiKey',    data.ocrKey);
-      if(data.scriptUrl) localStorage.setItem('aofSheetUrl',  data.scriptUrl);
+      if(data.error){return;}
+      if(data.geminiKey){localStorage.setItem('geminiApiKey',data.geminiKey);}
+      if(data.groqKey){localStorage.setItem('groqApiKey',data.groqKey);}
+      if(data.ocrKey){localStorage.setItem('ocrApiKey',data.ocrKey);}
+      if(data.scriptUrl){localStorage.setItem('aofSheetUrl',data.scriptUrl);}
+      // Update key fields in admin panel if open
+      var gk=document.getElementById('adminGeminiKey');
+      var rk=document.getElementById('adminGroqKey');
+      var ok=document.getElementById('adminOcrKey');
+      if(gk&&data.geminiKey)gk.value=data.geminiKey;
+      if(rk&&data.groqKey)rk.value=data.groqKey;
+      if(ok&&data.ocrKey)ok.value=data.ocrKey;
     })
     .catch(function(){
-      // Use cached keys if available — no change needed
+      // Silently use cached keys
     });
 }
 window.onload=function(){
