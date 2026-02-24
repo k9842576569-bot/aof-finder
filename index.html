@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>AOF Finder v6 - SUSINFO [BUILD 022]</title>
+<title>AOF Finder v6 - SUSINFO [BUILD 023]</title>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Segoe UI',Tahoma,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#0f3460 100%);min-height:100vh;display:flex;justify-content:center;padding:12px 10px 30px;}
@@ -279,16 +279,18 @@ textarea:focus{border-color:#2196F3;}
       <div class="act-device-id" id="actDeviceId">Generating...</div>
     </div>
     <div class="act-note">✅ This is a one-time process only!</div>
-    <button class="act-retry" onclick="checkActivation()">🔄 CHECK ACTIVATION STATUS</button>
+    <button class="act-retry" onclick="checkStatus()" id="actRetryBtn">🔄 CHECK STATUS</button>
 
   </div>
 </div>
 
-<!-- ADMIN PIN SCREEN -->
-<div class="admin-pin-screen" id="adminPinScreen">
+<!-- UNIFIED PIN SCREEN — SHOWS FIRST TO EVERYONE -->
+<div class="admin-pin-screen" id="adminPinScreen" style="display:flex;">
   <div class="pin-card">
-    <div class="pin-title">👑 Admin Access</div>
-    <div class="pin-subtitle">Enter your 4-digit PIN</div>
+    <div style="text-align:center;margin-bottom:8px;font-size:32px;">🔍</div>
+    <div class="pin-title" id="pinTitle">AOF Finder v6</div>
+    <div class="pin-subtitle" id="pinSubtitle">Enter your PIN to continue</div>
+    <div style="background:#fff3e0;border-radius:8px;padding:6px;margin-bottom:10px;font-size:11px;color:#e65100;text-align:center;font-weight:700;" id="pinError"></div>
     <div class="pin-dots">
       <div class="pin-dot" id="pd0"></div>
       <div class="pin-dot" id="pd1"></div>
@@ -308,7 +310,7 @@ textarea:focus{border-color:#2196F3;}
       <button class="pin-key del" onclick="pinDel()">⌫</button>
       <button class="pin-key zero" onclick="pinKey('0')">0</button>
     </div>
-    <button class="pin-cancel" onclick="closePinScreen()">Cancel</button>
+    <div style="font-size:10px;color:#bbb;text-align:center;margin-top:8px;">SUSINFO • BUILD 023</div>
   </div>
 </div>
 
@@ -317,7 +319,7 @@ textarea:focus{border-color:#2196F3;}
   <div class="header" id="mainHeader" onclick="headerTap()">
     <h1>🔍 AOF Finder v6</h1>
     <p>SUSINFO — World Class Edition</p>
-    <p style="font-size:10px;color:#2196F3;font-weight:800;margin-top:2px;">BUILD 022 • 23-Feb-2026</p>
+    <p style="font-size:10px;color:#2196F3;font-weight:800;margin-top:2px;">BUILD 023 • 23-Feb-2026</p>
     <div class="tap-hint" id="tapHint"></div>
   </div>
   <div class="sync-banner" id="syncBanner"></div>
@@ -361,7 +363,7 @@ textarea:focus{border-color:#2196F3;}
       <div id="historyList"><div class="history-empty">No searches yet</div></div>
     </div>
   </div>
-  <div class="footer">Developed by <strong>SUSINFO</strong> • AOF Finder v6.0 • <strong style="color:#2196F3;">BUILD 022</strong></div>
+  <div class="footer">Developed by <strong>SUSINFO</strong> • AOF Finder v6.0 • <strong style="color:#2196F3;">BUILD 023</strong></div>
   <button onclick="sysConfigClick()" style="width:100%;margin-top:8px;padding:12px;border:2px dashed #ccc;border-radius:12px;background:#f8f9fa;color:#bbb;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;">⚙️ SYSTEM CONFIG</button>
 </div>
 
@@ -578,7 +580,7 @@ textarea:focus{border-color:#2196F3;}
     </div>
     <div class="settings-section">
       <div class="settings-section-title">ℹ️ App Info</div>
-      <div class="setting-row"><span class="setting-label">Version</span><span class="setting-value">v6.0 BUILD 022</span></div>
+      <div class="setting-row"><span class="setting-label">Version</span><span class="setting-value">v6.0 BUILD 023</span></div>
       <div class="setting-row"><span class="setting-label">Developer</span><span class="setting-value">SUSINFO</span></div>
       <div class="setting-row"><span class="setting-label">Max Records</span><span class="setting-value">2,00,000</span></div>
       <div class="setting-row"><span class="setting-label">Security</span><span class="setting-value">Device Approval</span></div>
@@ -776,18 +778,28 @@ function checkActivationBackground(devId,sheetUrl){
 
 function showActivationScreen(reason){
   document.getElementById('activationScreen').classList.add('active');
-  document.getElementById('actDeviceId').textContent=getDeviceId();
+  var devId=getDeviceId();
+  var actEl=document.getElementById('actDeviceId');
+  if(actEl)actEl.textContent=devId;
   var titleEl=document.querySelector('.act-title');
   var noteEl=document.querySelector('.act-note');
-  if(reason==='nointernet'){
-    if(titleEl)titleEl.textContent='📵 No Internet Connection';
-    if(noteEl)noteEl.textContent='⚠️ Internet required to use this app!';
+  var checkBtn=document.querySelector('.act-retry');
+  if(reason==='locked'){
+    if(titleEl)titleEl.textContent='🔒 Device Locked!';
+    if(noteEl)noteEl.textContent='Too many wrong PIN attempts! Contact admin to unlock.';
+    if(checkBtn)checkBtn.style.display='none';
   }else if(reason==='blocked'){
-    if(titleEl)titleEl.textContent='🚫 Access Blocked';
-    if(noteEl)noteEl.textContent='❌ Your device has been blocked by admin!';
+    if(titleEl)titleEl.textContent='🚫 Access Blocked!';
+    if(noteEl)noteEl.textContent='Your device has been blocked by administrator!';
+    if(checkBtn)checkBtn.style.display='none';
+  }else if(reason==='nointernet'){
+    if(titleEl)titleEl.textContent='📵 No Internet!';
+    if(noteEl)noteEl.textContent='Internet connection required to use this app!';
+    if(checkBtn){checkBtn.style.display='block';checkBtn.textContent='🔄 RETRY';}
   }else{
     if(titleEl)titleEl.textContent='🔒 Authorization Required';
-    if(noteEl)noteEl.textContent='✅ This is a one-time process only!';
+    if(noteEl)noteEl.textContent='Your request sent to admin. Please wait for approval.';
+    if(checkBtn){checkBtn.style.display='block';checkBtn.textContent='🔄 CHECK STATUS';}
   }
 }
 function hideActivationScreen(){
@@ -877,12 +889,15 @@ function headerTap(){
 // Footer click disabled — use SYSTEM CONFIG button only
 function adminSecretClick(){ /* disabled */ }
 function openAdminPin(){
-  currentPin='';updatePinDots();
-  document.getElementById('adminPinScreen').classList.add('active');
+  currentPin='';
+  updatePinDots();
+  setPinError('');
+  showPinScreen(true);
 }
 function closePinScreen(){
-  currentPin='';updatePinDots();
-  document.getElementById('adminPinScreen').classList.remove('active');
+  currentPin='';
+  updatePinDots();
+  showPinScreen(false);
 }
 function pinKey(k){
   if(currentPin.length>=4)return;
@@ -897,12 +912,112 @@ function updatePinDots(){
   }
 }
 function checkPin(){
-  if(currentPin===getAdminPin()){
-    closePinScreen();openAdminPanel();
-  }else{
-    currentPin='';updatePinDots();
-    alert('❌ Wrong PIN! Try again.');
+  var ADMIN_PIN='8700';
+  var TEAM_PIN='9999';
+  var pin=currentPin;
+  currentPin='';
+  updatePinDots();
+
+  // ── ADMIN PIN ──────────────────────────────
+  if(pin===ADMIN_PIN){
+    // Admin — unlock any locked device first
+    localStorage.removeItem('aofPinLocked');
+    localStorage.removeItem('aofPinAttempts');
+    showPinScreen(false);
+    openAdminPanel();
+    return;
   }
+
+  // ── TEAM PIN ───────────────────────────────
+  if(pin===TEAM_PIN){
+    // Check internet first
+    if(!navigator.onLine){
+      setPinError('📵 No internet! Cannot verify access.');
+      return;
+    }
+    // Check Google Sheet
+    var url=getSheetUrl();
+    if(!url){
+      setPinError('⚠️ System not configured! Call admin.');
+      return;
+    }
+    setPinError('🔄 Checking authorization...');
+    collectDeviceInfo(function(info){
+      var params='?action=register&key=AOF_FINDER'+
+        '&deviceId='+encodeURIComponent(info.deviceId)+
+        '&deviceName='+encodeURIComponent(info.deviceName)+
+        '&browser='+encodeURIComponent(info.browser)+
+        '&os='+encodeURIComponent(info.os)+
+        '&resolution='+encodeURIComponent(info.resolution)+
+        '&language='+encodeURIComponent(info.language)+
+        '&timezone='+encodeURIComponent(info.timezone)+
+        '&network='+encodeURIComponent(info.network)+
+        '&battery='+encodeURIComponent(info.battery)+
+        '&openTime='+encodeURIComponent(new Date().toLocaleString('en-IN'));
+      if(info.latlong)params+='&latlong='+encodeURIComponent(info.latlong);
+      if(info.city)params+='&city='+encodeURIComponent(info.city);
+
+      fetch(url+params,{redirect:'follow'})
+        .then(function(r){return r.text();})
+        .then(function(text){
+          try{
+            var data=JSON.parse(text);
+            if(data.status==='approved'){
+              // Clear attempts, open app
+              localStorage.removeItem('aofPinAttempts');
+              localStorage.removeItem('aofPinLocked');
+              showPinScreen(false);
+              hideActivationScreen();
+            }else if(data.status==='locked'){
+              showPinScreen(false);
+              showActivationScreen('locked');
+            }else if(data.status==='blocked'){
+              showPinScreen(false);
+              showActivationScreen('blocked');
+            }else{
+              showPinScreen(false);
+              showActivationScreen('pending');
+            }
+          }catch(e){
+            setPinError('❌ Server error! Try again.');
+          }
+        })
+        .catch(function(){
+          setPinError('📵 Cannot reach server! Check internet.');
+        });
+    });
+    return;
+  }
+
+  // ── WRONG PIN ──────────────────────────────
+  var attempts=parseInt(localStorage.getItem('aofPinAttempts')||'0')+1;
+  localStorage.setItem('aofPinAttempts',attempts);
+  var remaining=3-attempts;
+  if(attempts>=3){
+    // LOCK DEVICE
+    localStorage.setItem('aofPinLocked','true');
+    // Update Google Sheet status to locked
+    var url=getSheetUrl();
+    var devId=getDeviceId();
+    if(url){
+      fetch(url+'?action=update&key=AOF_FINDER&password=8700&deviceId='+encodeURIComponent(devId)+'&status=locked',{redirect:'follow'}).catch(function(){});
+    }
+    showPinScreen(false);
+    showActivationScreen('locked');
+  }else{
+    setPinError('❌ Wrong PIN! '+remaining+' attempt'+(remaining===1?'':'s')+' left!');
+  }
+}
+
+function setPinError(msg){
+  var el=document.getElementById('pinError');
+  if(el){el.textContent=msg;el.style.display=msg?'block':'none';}
+}
+
+function showPinScreen(show){
+  var el=document.getElementById('adminPinScreen');
+  if(!el)return;
+  el.style.display=show?'flex':'none';
 }
 function changeAdminPin(){
   const np=document.getElementById('newPinInput').value.trim();
@@ -1915,12 +2030,19 @@ function refreshDeviceList(){
       }
       data.devices.sort((a,b)=>{const o={pending:0,approved:1,blocked:2};return(o[a.status]||0)-(o[b.status]||0);});
       el.innerHTML=data.devices.map(function(dev){
-        var sc=dev.status==='approved'?'status-approved':dev.status==='blocked'?'status-blocked':'status-pending';
-        var st=dev.status==='approved'?'Active':dev.status==='blocked'?'Blocked':'Pending';
-        var appBtn=dev.status!=='approved'?'<button class="dev-btn dev-approve" onclick="approveDevice(this)" data-id="'+dev.deviceId+'">APPROVE</button>':'';
-        var blkBtn=dev.status!=='blocked'?'<button class="dev-btn dev-block" onclick="blockDevice(this)" data-id="'+dev.deviceId+'">BLOCK</button>':'';
-        var delBtn='<button class="dev-btn dev-delete" onclick="deleteDevice(this)" data-id="'+dev.deviceId+'">DEL</button>';
-        return '<div class="device-card '+dev.status+'"><div class="device-top"><span class="device-name">'+( dev.name||'Device')+'</span><span class="device-status '+sc+'">'+st+'</span></div><div class="device-info">ID: '+dev.deviceId+'</div><div class="device-actions">'+appBtn+blkBtn+delBtn+'</div></div>';
+        var sc=dev.status==='approved'?'status-approved':dev.status==='blocked'?'status-blocked':dev.status==='locked'?'status-blocked':'status-pending';
+        var st=dev.status==='approved'?'✅ Active':dev.status==='blocked'?'❌ Blocked':dev.status==='locked'?'🔒 Locked':'⏳ Pending';
+        var cardBg=dev.status==='approved'?'#e8f5e9':dev.status==='locked'?'#fce4ec':dev.status==='blocked'?'#fce4ec':'#fff8e1';
+        var appBtn=dev.status!=='approved'?'<button class="dev-btn dev-approve" onclick="approveDevice(this)" data-id="'+dev.deviceId+'">✅ APPROVE</button>':'';
+        var blkBtn=dev.status!=='blocked'&&dev.status!=='locked'?'<button class="dev-btn dev-block" onclick="blockDevice(this)" data-id="'+dev.deviceId+'">❌ BLOCK</button>':'';
+        var unlockBtn=dev.status==='locked'?'<button class="dev-btn dev-approve" onclick="approveDevice(this)" data-id="'+dev.deviceId+'">🔓 UNLOCK</button>':'';
+        var delBtn='<button class="dev-btn dev-delete" onclick="deleteDevice(this)" data-id="'+dev.deviceId+'">🗑 DEL</button>';
+        var devName=dev.deviceName||dev.name||'Unknown';
+        var devInfo=dev.os?devName+' • '+dev.os:devName;
+        return '<div class="device-card '+dev.status+'" style="background:'+cardBg+';border-radius:12px;padding:12px;margin-bottom:8px;border:2px solid #eee;">'+
+          '<div class="device-top"><span class="device-name" style="font-weight:800;font-size:13px;">📱 '+devInfo+'</span><span class="device-status '+sc+'" style="font-size:11px;font-weight:800;">'+st+'</span></div>'+
+          '<div class="device-info" style="font-size:10px;color:#888;margin:4px 0;">ID: '+dev.deviceId+(dev.city?' • '+dev.city:'')+(dev.openCount?' • Opens: '+dev.openCount:'')+'</div>'+
+          '<div class="device-actions" style="display:flex;gap:6px;margin-top:8px;">'+unlockBtn+appBtn+blkBtn+delBtn+'</div></div>';
       }).join('');
     })
     .catch(function(err){
@@ -1966,7 +2088,30 @@ function registerDevice(devId,url){
 
 function adminBypassActivation(){
   currentPin='';updatePinDots();
-  document.getElementById('adminPinScreen').classList.add('active');
+  showPinScreen(true);
+}
+function checkStatus(){
+  if(!navigator.onLine){showActivationScreen('nointernet');return;}
+  var url=getSheetUrl();
+  var devId=getDeviceId();
+  var btn=document.getElementById('actRetryBtn');
+  if(btn)btn.textContent='🔄 Checking...';
+  fetch(url+'?action=check&key=AOF_FINDER&deviceId='+encodeURIComponent(devId),{redirect:'follow'})
+    .then(function(r){return r.text();})
+    .then(function(text){
+      var data=JSON.parse(text);
+      if(data.status==='approved'){
+        hideActivationScreen();
+      }else if(data.status==='blocked'){
+        showActivationScreen('blocked');
+      }else if(data.status==='locked'){
+        showActivationScreen('locked');
+      }else{
+        if(btn)btn.textContent='🔄 CHECK STATUS';
+        alert('⏳ Still pending! Please wait for admin approval.');
+      }
+    })
+    .catch(function(){showActivationScreen('nointernet');});
 }
 // SYSTEM CONFIG needs 3 clicks within 2 seconds
 let sysClickCount=0,sysClickTimer=null;
