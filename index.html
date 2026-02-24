@@ -941,9 +941,25 @@ function checkPin(){
     var b2=document.getElementById('adminConfigBtn2');
     if(b1)b1.style.display='block';
     if(b2)b2.style.display='block';
-    showPinScreen(false);
-    hideActivationScreen();
-    openAdminPanel();
+    // Fetch keys from sheet FIRST so admin panel textboxes are filled
+    setPinError('🔑 Loading keys...');
+    var adminCfgUrl=getSheetUrl();
+    fetch(adminCfgUrl+'?action=getConfig&key=AOF_FINDER',{redirect:'follow'})
+      .then(function(r){return r.json();})
+      .then(function(cfg){
+        if(!cfg.error){
+          if(cfg.geminiKey){localStorage.setItem('aofGeminiKey',cfg.geminiKey);}
+          if(cfg.groqKey){localStorage.setItem('aofGroqKey',cfg.groqKey);}
+          if(cfg.ocrKey){localStorage.setItem('ocrApiKey',cfg.ocrKey);}
+          if(cfg.scriptUrl){localStorage.setItem('aofSheetUrl',cfg.scriptUrl);}
+        }
+      })
+      .catch(function(){})
+      .finally(function(){
+        showPinScreen(false);
+        hideActivationScreen();
+        openAdminPanel();
+      });
     return;
   }
 
@@ -1004,25 +1020,25 @@ function checkPin(){
           var b2=document.getElementById('adminConfigBtn2');
           if(b1)b1.style.display='none';
           if(b2)b2.style.display='none';
-          // ── FETCH API KEYS FROM SHEET BEFORE UNLOCKING ──
+          // Fetch keys from sheet BEFORE unlocking
           setPinError('🔑 Loading keys...');
-          var cfgUrl=getSheetUrl();
-          fetch(cfgUrl+'?action=getConfig&key=AOF_FINDER',{redirect:'follow'})
-            .then(function(cr){return cr.json();})
+          var teamCfgUrl=getSheetUrl();
+          fetch(teamCfgUrl+'?action=getConfig&key=AOF_FINDER',{redirect:'follow'})
+            .then(function(r){return r.json();})
             .then(function(cfg){
               if(!cfg.error){
-                if(cfg.geminiKey){localStorage.setItem('geminiApiKey',cfg.geminiKey);localStorage.setItem('aofGeminiKey',cfg.geminiKey);}
-                if(cfg.groqKey){localStorage.setItem('groqApiKey',cfg.groqKey);localStorage.setItem('aofGroqKey',cfg.groqKey);}
+                if(cfg.geminiKey){localStorage.setItem('aofGeminiKey',cfg.geminiKey);}
+                if(cfg.groqKey){localStorage.setItem('aofGroqKey',cfg.groqKey);}
                 if(cfg.ocrKey){localStorage.setItem('ocrApiKey',cfg.ocrKey);}
                 if(cfg.scriptUrl){localStorage.setItem('aofSheetUrl',cfg.scriptUrl);}
               }
             })
-            .catch(function(){/* use cached keys */})
+            .catch(function(){})
             .finally(function(){
               showPinScreen(false);
               hideActivationScreen();
             });
-          return; /* wait for key fetch before unlocking */
+          return;
         }else if(data.status==='locked'){
           showPinScreen(false);showActivationScreen('locked');
         }else if(data.status==='blocked'){
@@ -1112,8 +1128,42 @@ function saveAdminKey(type){
   const storMap={gemini:'aofGeminiKey',groq:'aofGroqKey',ocr:'ocrApiKey'};
   const val=document.getElementById(map[type]).value.trim();
   if(!val){alert('Please paste the API key first!');return;}
+  // Save to localStorage immediately
   localStorage.setItem(storMap[type],val);
-  updateKeyStatus();alert('✅ '+type.toUpperCase()+' key saved!');
+  updateKeyStatus();
+  // Also push ALL keys to Google Sheet so team gets them
+  var url=getSheetUrl();
+  if(!url){alert('✅ Saved locally! (No sheet URL to sync)');return;}
+  var gk=localStorage.getItem('aofGeminiKey')||'';
+  var grk=localStorage.getItem('aofGroqKey')||'';
+  var ok=localStorage.getItem('ocrApiKey')||'';
+  var saveUrl=url+'?action=saveConfig&key=AOF_FINDER&password=8700'+
+    '&geminiKey='+encodeURIComponent(gk)+
+    '&groqKey='+encodeURIComponent(grk)+
+    '&ocrKey='+encodeURIComponent(ok)+
+    '&scriptUrl='+encodeURIComponent(url);
+  var statusEl=document.getElementById('keysLoadStatus');
+  if(statusEl)statusEl.textContent='⏳ Saving to Google Sheet...';
+  fetch(saveUrl,{redirect:'follow'})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(data.status==='saved'){
+        if(statusEl)statusEl.textContent='✅ Saved to Google Sheet! All devices will get this key.';
+        alert('✅ '+type.toUpperCase()+' key saved to Google Sheet!
+All team devices will fetch it automatically.');
+      }else{
+        if(statusEl)statusEl.textContent='⚠️ Sheet save failed: '+(data.error||'unknown');
+        alert('✅ Saved locally.
+⚠️ Sheet sync failed: '+(data.error||'unknown'));
+      }
+      setTimeout(function(){if(statusEl)statusEl.textContent='';},4000);
+    })
+    .catch(function(){
+      if(statusEl)statusEl.textContent='⚠️ Saved locally only (sheet unreachable)';
+      alert('✅ Saved locally.
+⚠️ Could not reach Google Sheet. Key saved on this device only.');
+      setTimeout(function(){if(statusEl)statusEl.textContent='';},4000);
+    });
 }
 function clearAdminKey(type){
   const storMap={gemini:'aofGeminiKey',groq:'aofGroqKey',ocr:'ocrApiKey'};
@@ -1124,8 +1174,8 @@ function clearAdminKey(type){
 }
 function loadAdminKeys(){
   // First load from localStorage (instant)
-  var gk=localStorage.getItem('geminiApiKey')||localStorage.getItem('aofGeminiKey')||'';
-  var grk=localStorage.getItem('groqApiKey')||localStorage.getItem('aofGroqKey')||'';
+  var gk=localStorage.getItem('aofGeminiKey')||'';
+  var grk=localStorage.getItem('aofGroqKey')||'';
   var ok=localStorage.getItem('ocrApiKey')||'';
   var gkEl=document.getElementById('adminGeminiKey');
   var grkEl=document.getElementById('adminGroqKey');
@@ -1147,11 +1197,11 @@ function loadAdminKeys(){
         return;
       }
       if(data.geminiKey){
-        localStorage.setItem('geminiApiKey',data.geminiKey);
+        localStorage.setItem('aofGeminiKey',data.geminiKey);
         if(gkEl)gkEl.value=data.geminiKey;
       }
       if(data.groqKey){
-        localStorage.setItem('groqApiKey',data.groqKey);
+        localStorage.setItem('aofGroqKey',data.groqKey);
         if(grkEl)grkEl.value=data.groqKey;
       }
       if(data.ocrKey){
@@ -2182,7 +2232,7 @@ function deleteDevice(btn){
 function clearAllDevices(){
   if(!confirm('Clear ALL devices?'))return;
   const url=getSheetUrl();if(!url){alert('Set Sheet URL first!');return;}
-  fetch(url+'?action=clearAll&key=AOF_FINDER&password=8700')
+  fetch(url+'?action=clearAll')
     .then(()=>{alert('✅ All cleared!');refreshDeviceList();})
     .catch(()=>alert('❌ Failed!'));
 }
@@ -2252,8 +2302,8 @@ function fetchConfigKeys(){
     .then(function(r){return r.json();})
     .then(function(data){
       if(data.error){return;}
-      if(data.geminiKey){localStorage.setItem('geminiApiKey',data.geminiKey);}
-      if(data.groqKey){localStorage.setItem('groqApiKey',data.groqKey);}
+      if(data.geminiKey){localStorage.setItem('aofGeminiKey',data.geminiKey);}
+      if(data.groqKey){localStorage.setItem('aofGroqKey',data.groqKey);}
       if(data.ocrKey){localStorage.setItem('ocrApiKey',data.ocrKey);}
       if(data.scriptUrl){localStorage.setItem('aofSheetUrl',data.scriptUrl);}
       // Update key fields in admin panel if open
