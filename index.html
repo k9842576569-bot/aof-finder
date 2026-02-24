@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#1a1a2e">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -9,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>AOF Finder v6 - SUSINFO [BUILD 031]</title>
+<title>AOF Finder v6 - SUSINFO [BUILD 032]</title>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Segoe UI',Tahoma,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#0f3460 100%);min-height:100vh;display:flex;justify-content:center;padding:12px 10px 30px;}
@@ -943,6 +946,7 @@ function checkPin(){
     if(b2)b2.style.display='block';
     setPinError('🔑 Loading keys...');
     var adminCfgUrl=getSheetUrl();
+    function adminUnlock(){showPinScreen(false);hideActivationScreen();openAdminPanel();}
     fetch(adminCfgUrl+'?action=getConfig&key=AOF_FINDER',{redirect:'follow'})
       .then(function(r){return r.json();})
       .then(function(cfg){
@@ -952,13 +956,9 @@ function checkPin(){
           if(cfg.ocrKey){localStorage.setItem('ocrApiKey',cfg.ocrKey);}
           if(cfg.scriptUrl){localStorage.setItem('aofSheetUrl',cfg.scriptUrl);}
         }
+        adminUnlock();
       })
-      .catch(function(){})
-      .finally(function(){
-        showPinScreen(false);
-        hideActivationScreen();
-        openAdminPanel();
-      });
+      .catch(function(){adminUnlock();});
     return;
   }
 
@@ -1021,6 +1021,7 @@ function checkPin(){
           if(b2)b2.style.display='none';
           setPinError('🔑 Loading keys...');
           var teamCfgUrl=getSheetUrl();
+          function teamUnlock(){showPinScreen(false);hideActivationScreen();}
           fetch(teamCfgUrl+'?action=getConfig&key=AOF_FINDER',{redirect:'follow'})
             .then(function(r){return r.json();})
             .then(function(cfg){
@@ -1030,12 +1031,9 @@ function checkPin(){
                 if(cfg.ocrKey){localStorage.setItem('ocrApiKey',cfg.ocrKey);}
                 if(cfg.scriptUrl){localStorage.setItem('aofSheetUrl',cfg.scriptUrl);}
               }
+              teamUnlock();
             })
-            .catch(function(){})
-            .finally(function(){
-              showPinScreen(false);
-              hideActivationScreen();
-            });
+            .catch(function(){teamUnlock();});
           return;
         }else if(data.status==='locked'){
           showPinScreen(false);showActivationScreen('locked');
@@ -1145,19 +1143,16 @@ function saveAdminKey(type){
     .then(function(data){
       if(data.status==='saved'){
         if(st)st.textContent='✅ Saved to Sheet! All devices will get this key.';
-        alert('✅ '+type.toUpperCase()+' key saved to Google Sheet!
-All team devices will fetch it on next login.');
+        alert('✅ '+type.toUpperCase()+' key saved to Google Sheet! All team devices will fetch it on next login.');
       }else{
         if(st)st.textContent='⚠️ '+(data.error||'Sheet save failed');
-        alert('✅ Saved locally.
-⚠️ Sheet sync failed: '+(data.error||'unknown'));
+        alert('✅ Saved locally. Sheet sync failed: '+(data.error||'unknown'));
       }
       setTimeout(function(){if(st)st.textContent='';},4000);
     })
     .catch(function(){
       if(st)st.textContent='⚠️ Saved locally only';
-      alert('✅ Saved locally.
-⚠️ Could not reach Google Sheet.');
+      alert('✅ Saved locally. Could not reach Google Sheet.');
       setTimeout(function(){if(st)st.textContent='';},4000);
     });
 }
