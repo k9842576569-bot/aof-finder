@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>AOF Finder v6 - SUSINFO [BUILD 026]</title>
+<title>AOF Finder v6 - SUSINFO [BUILD 027]</title>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Segoe UI',Tahoma,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#0f3460 100%);min-height:100vh;display:flex;justify-content:center;padding:12px 10px 30px;}
@@ -310,7 +310,7 @@ textarea:focus{border-color:#2196F3;}
       <button class="pin-key del" onclick="pinDel()">⌫</button>
       <button class="pin-key zero" onclick="pinKey('0')">0</button>
     </div>
-    <div style="font-size:10px;color:#bbb;text-align:center;margin-top:8px;">SUSINFO • BUILD 026</div>
+    <div style="font-size:10px;color:#bbb;text-align:center;margin-top:8px;">SUSINFO • BUILD 027</div>
   </div>
 </div>
 
@@ -319,7 +319,7 @@ textarea:focus{border-color:#2196F3;}
   <div class="header" id="mainHeader" onclick="headerTap()">
     <h1>🔍 AOF Finder v6</h1>
     <p>SUSINFO — World Class Edition</p>
-    <p style="font-size:10px;color:#2196F3;font-weight:800;margin-top:2px;">BUILD 026 • 23-Feb-2026</p>
+    <p style="font-size:10px;color:#2196F3;font-weight:800;margin-top:2px;">BUILD 027 • 23-Feb-2026</p>
     <div class="tap-hint" id="tapHint"></div>
   </div>
   <div class="sync-banner" id="syncBanner"></div>
@@ -363,7 +363,7 @@ textarea:focus{border-color:#2196F3;}
       <div id="historyList"><div class="history-empty">No searches yet</div></div>
     </div>
   </div>
-  <div class="footer">Developed by <strong>SUSINFO</strong> • AOF Finder v6.0 • <strong style="color:#2196F3;">BUILD 026</strong></div>
+  <div class="footer">Developed by <strong>SUSINFO</strong> • AOF Finder v6.0 • <strong style="color:#2196F3;">BUILD 027</strong></div>
   <button onclick="sysConfigClick()" style="width:100%;margin-top:8px;padding:12px;border:2px dashed #ccc;border-radius:12px;background:#f8f9fa;color:#bbb;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;">⚙️ SYSTEM CONFIG</button>
 </div>
 
@@ -580,7 +580,7 @@ textarea:focus{border-color:#2196F3;}
     </div>
     <div class="settings-section">
       <div class="settings-section-title">ℹ️ App Info</div>
-      <div class="setting-row"><span class="setting-label">Version</span><span class="setting-value">v6.0 BUILD 026</span></div>
+      <div class="setting-row"><span class="setting-label">Version</span><span class="setting-value">v6.0 BUILD 027</span></div>
       <div class="setting-row"><span class="setting-label">Developer</span><span class="setting-value">SUSINFO</span></div>
       <div class="setting-row"><span class="setting-label">Max Records</span><span class="setting-value">2,00,000</span></div>
       <div class="setting-row"><span class="setting-label">Security</span><span class="setting-value">Device Approval</span></div>
@@ -2018,46 +2018,53 @@ function testSheetUrl(){
 }
 
 function refreshDeviceList(){
-  const url=getSheetUrl();
-  const el=document.getElementById('deviceList');
+  var url=getSheetUrl();
+  var el=document.getElementById('deviceList');
   if(!el)return;
   if(!url){
-    el.innerHTML='<div style="background:#fff3e0;border:2px solid #FF9800;border-radius:10px;padding:12px;text-align:center;font-size:12px;color:#e65100;font-weight:700;">⚠️ Please paste Google Apps Script URL first!<br>Then tap SAVE and TEST</div>';
+    el.innerHTML='<div style="background:#fff3e0;border:2px solid #FF9800;border-radius:10px;padding:12px;text-align:center;font-size:12px;color:#e65100;font-weight:700;">⚠️ Please configure Google Sheet URL first!</div>';
     return;
   }
   el.innerHTML='<div style="text-align:center;padding:16px;font-size:13px;color:#1565C0;font-weight:700;">🔄 Loading devices...</div>';
-  var xhrList=new XMLHttpRequest();
-  xhrList.open('GET',url+'?action=list&key=AOF_FINDER&password=8700',true);
-  xhrList.timeout=15000;
-  xhrList.onerror=function(){el.innerHTML='<div style="background:#fce4ec;border:2px solid #e53935;border-radius:10px;padding:12px;text-align:center;font-size:12px;color:#c62828;font-weight:700;">❌ Cannot load!<br><small>Network error</small><br><button onclick="refreshDeviceList()" style="margin-top:8px;padding:8px 16px;border:none;border-radius:8px;background:#2196F3;color:#fff;font-weight:800;cursor:pointer;">🔄 RETRY</button></div>';};
-  xhrList.ontimeout=function(){el.innerHTML='<div style="background:#fce4ec;border:2px solid #e53935;border-radius:10px;padding:12px;text-align:center;font-size:12px;color:#c62828;font-weight:700;">⏱ Timeout!<br><button onclick="refreshDeviceList()" style="margin-top:8px;padding:8px 16px;border:none;border-radius:8px;background:#2196F3;color:#fff;font-weight:800;cursor:pointer;">🔄 RETRY</button></div>';};
-  xhrList.onload=function(){
-  var text=xhrList.responseText;
+  fetch(url+'?action=list&key=AOF_FINDER&password=8700',{method:'GET',redirect:'follow'})
+    .then(function(r){return r.text();})
+    .then(function(text){
       var data;
       try{data=JSON.parse(text);}
-      catch(e){el.innerHTML='<div style="color:red;padding:12px;">❌ Bad response!</div>';return;}
+      catch(e){
+        el.innerHTML='<div style="color:red;padding:12px;text-align:center;">❌ Bad response!<br><small>'+text.slice(0,100)+'</small></div>';
+        return;
+      }
+      if(data.error){
+        el.innerHTML='<div style="color:red;padding:12px;text-align:center;">❌ '+data.error+'</div>';
+        return;
+      }
       if(!data.devices||data.devices.length===0){
         el.innerHTML='<div style="text-align:center;padding:16px;font-size:13px;color:#888;">📭 No devices yet!<br><small>When team opens app they appear here</small></div>';
         return;
       }
-      data.devices.sort((a,b)=>{const o={pending:0,approved:1,blocked:2};return(o[a.status]||0)-(o[b.status]||0);});
+      data.devices.sort(function(a,b){var o={pending:0,locked:1,blocked:2,approved:3};return(o[a.status]||0)-(o[b.status]||0);});
       el.innerHTML=data.devices.map(function(dev){
-        var sc=dev.status==='approved'?'status-approved':dev.status==='blocked'?'status-blocked':dev.status==='locked'?'status-blocked':'status-pending';
+        var sc=dev.status==='approved'?'status-approved':dev.status==='blocked'||dev.status==='locked'?'status-blocked':'status-pending';
         var st=dev.status==='approved'?'✅ Active':dev.status==='blocked'?'❌ Blocked':dev.status==='locked'?'🔒 Locked':'⏳ Pending';
-        var cardBg=dev.status==='approved'?'#e8f5e9':dev.status==='locked'?'#fce4ec':dev.status==='blocked'?'#fce4ec':'#fff8e1';
+        var cardBg=dev.status==='approved'?'#e8f5e9':dev.status==='locked'||dev.status==='blocked'?'#fce4ec':'#fff8e1';
         var appBtn=dev.status!=='approved'?'<button class="dev-btn dev-approve" onclick="approveDevice(this)" data-id="'+dev.deviceId+'">✅ APPROVE</button>':'';
         var blkBtn=dev.status!=='blocked'&&dev.status!=='locked'?'<button class="dev-btn dev-block" onclick="blockDevice(this)" data-id="'+dev.deviceId+'">❌ BLOCK</button>':'';
         var unlockBtn=dev.status==='locked'?'<button class="dev-btn dev-approve" onclick="approveDevice(this)" data-id="'+dev.deviceId+'">🔓 UNLOCK</button>':'';
         var delBtn='<button class="dev-btn dev-delete" onclick="deleteDevice(this)" data-id="'+dev.deviceId+'">🗑 DEL</button>';
         var devName=dev.deviceName||dev.name||'Unknown';
         var devInfo=dev.os?devName+' • '+dev.os:devName;
-        return '<div class="device-card '+dev.status+'" style="background:'+cardBg+';border-radius:12px;padding:12px;margin-bottom:8px;border:2px solid #eee;">'+
-          '<div class="device-top"><span class="device-name" style="font-weight:800;font-size:13px;">📱 '+devInfo+'</span><span class="device-status '+sc+'" style="font-size:11px;font-weight:800;">'+st+'</span></div>'+
-          '<div class="device-info" style="font-size:10px;color:#888;margin:4px 0;">ID: '+dev.deviceId+(dev.city?' • '+dev.city:'')+(dev.openCount?' • Opens: '+dev.openCount:'')+'</div>'+
-          '<div class="device-actions" style="display:flex;gap:6px;margin-top:8px;">'+unlockBtn+appBtn+blkBtn+delBtn+'</div></div>';
+        return '<div style="background:'+cardBg+';border-radius:12px;padding:12px;margin-bottom:8px;border:2px solid #ddd;">'+
+          '<div style="display:flex;justify-content:space-between;align-items:center;">'+
+          '<span style="font-weight:800;font-size:13px;">📱 '+devInfo+'</span>'+
+          '<span style="font-size:11px;font-weight:800;">'+st+'</span></div>'+
+          '<div style="font-size:10px;color:#888;margin:4px 0;">ID: '+dev.deviceId+(dev.city?' • '+dev.city:'')+(dev.openCount?' • Opens: '+dev.openCount:'')+'</div>'+
+          '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">'+unlockBtn+appBtn+blkBtn+delBtn+'</div></div>';
       }).join('');
-  };
-  xhrList.send();
+    })
+    .catch(function(err){
+      el.innerHTML='<div style="background:#fce4ec;border:2px solid #e53935;border-radius:10px;padding:12px;text-align:center;font-size:12px;color:#c62828;font-weight:700;">❌ Cannot load!<br><small>'+err.message+'</small><br><button onclick="refreshDeviceList()" style="margin-top:8px;padding:8px 16px;border:none;border-radius:8px;background:#2196F3;color:#fff;font-weight:800;cursor:pointer;">🔄 RETRY</button></div>';
+    });
 }
 
 function xhrAction(url,cb){
