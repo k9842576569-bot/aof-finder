@@ -1004,10 +1004,25 @@ function checkPin(){
           var b2=document.getElementById('adminConfigBtn2');
           if(b1)b1.style.display='none';
           if(b2)b2.style.display='none';
-          showPinScreen(false);
-          hideActivationScreen();
-          // Fetch keys after login
-          fetchConfigKeys();
+          // ── FETCH API KEYS FROM SHEET BEFORE UNLOCKING ──
+          setPinError('🔑 Loading keys...');
+          var cfgUrl=getSheetUrl();
+          fetch(cfgUrl+'?action=getConfig&key=AOF_FINDER',{redirect:'follow'})
+            .then(function(cr){return cr.json();})
+            .then(function(cfg){
+              if(!cfg.error){
+                if(cfg.geminiKey){localStorage.setItem('geminiApiKey',cfg.geminiKey);localStorage.setItem('aofGeminiKey',cfg.geminiKey);}
+                if(cfg.groqKey){localStorage.setItem('groqApiKey',cfg.groqKey);localStorage.setItem('aofGroqKey',cfg.groqKey);}
+                if(cfg.ocrKey){localStorage.setItem('ocrApiKey',cfg.ocrKey);}
+                if(cfg.scriptUrl){localStorage.setItem('aofSheetUrl',cfg.scriptUrl);}
+              }
+            })
+            .catch(function(){/* use cached keys */})
+            .finally(function(){
+              showPinScreen(false);
+              hideActivationScreen();
+            });
+          return; /* wait for key fetch before unlocking */
         }else if(data.status==='locked'){
           showPinScreen(false);showActivationScreen('locked');
         }else if(data.status==='blocked'){
@@ -1625,7 +1640,7 @@ function sendToOnlineOCR(b64){
   if(!apiKey){
     // No OCR key — switch to Tesseract automatically
     showOcrStatus('🔄 Switching to offline OCR...','scanning');
-    setTimeout(function(){runTesseractOcr();},300);
+    setTimeout(function(){sendToOfflineOCR(b64,'cam');},300);
     return;
   }
   showOcrStatus('🌐 Online OCR scanning...','scanning');
@@ -2056,7 +2071,7 @@ if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.s
 // ============================================================
 // GOOGLE SHEET FUNCTIONS
 // ============================================================
-function getSheetUrl(){return localStorage.getItem('aofSheetUrl')||'https://script.google.com/macros/s/AKfycbxDhMBNITp4tefJoVhkEJLgDPC2w_DMS_P3D6doIQdZVX57G8iTydKwH9G6EStCG1xo/exec';}
+function getSheetUrl(){return localStorage.getItem('aofSheetUrl')||'https://script.google.com/macros/s/AKfycbwFojttNrbTsnB9IjGm6_zFwEIaYVxkaKVzokhRLSGVNVmOUfAsGtMAKwZ3vkQxkhJC/exec';}
 
 function testSheetUrl(){
   const url=getSheetUrl();
@@ -2167,7 +2182,7 @@ function deleteDevice(btn){
 function clearAllDevices(){
   if(!confirm('Clear ALL devices?'))return;
   const url=getSheetUrl();if(!url){alert('Set Sheet URL first!');return;}
-  fetch(url+'?action=clearAll')
+  fetch(url+'?action=clearAll&key=AOF_FINDER&password=8700')
     .then(()=>{alert('✅ All cleared!');refreshDeviceList();})
     .catch(()=>alert('❌ Failed!'));
 }
@@ -2257,7 +2272,7 @@ window.onload=function(){
   // Auto-save correct script URL if not already saved
   var savedUrl=localStorage.getItem('aofSheetUrl')||'';
   if(!savedUrl){
-    localStorage.setItem('aofSheetUrl','https://script.google.com/macros/s/AKfycbxDhMBNITp4tefJoVhkEJLgDPC2w_DMS_P3D6doIQdZVX57G8iTydKwH9G6EStCG1xo/exec');
+    localStorage.setItem('aofSheetUrl','https://script.google.com/macros/s/AKfycbwFojttNrbTsnB9IjGm6_zFwEIaYVxkaKVzokhRLSGVNVmOUfAsGtMAKwZ3vkQxkhJC/exec');
   }
   // Also update sheetScriptUrl field if admin panel open
   var urlField=document.getElementById('sheetScriptUrl');
