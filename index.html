@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>AOF Finder v6 - SUSINFO [BUILD 036]</title>
+<title>AOF Finder v6 - SUSINFO [BUILD 037]</title>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Segoe UI',Tahoma,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#0f3460 100%);min-height:100vh;display:flex;justify-content:center;padding:12px 10px 30px;}
@@ -310,7 +310,7 @@ textarea:focus{border-color:#2196F3;}
       <button class="pin-key del" onclick="pinDel()">⌫</button>
       <button class="pin-key zero" onclick="pinKey('0')">0</button>
     </div>
-    <div style="font-size:10px;color:#bbb;text-align:center;margin-top:8px;">SUSINFO • BUILD 036</div>
+    <div style="font-size:10px;color:#bbb;text-align:center;margin-top:8px;">SUSINFO • BUILD 037</div>
   </div>
 </div>
 
@@ -319,7 +319,7 @@ textarea:focus{border-color:#2196F3;}
   <div class="header" id="mainHeader" onclick="headerTap()">
     <h1>🔍 AOF Finder v6</h1>
     <p>SUSINFO — World Class Edition</p>
-    <p style="font-size:10px;color:#2196F3;font-weight:800;margin-top:2px;">BUILD 036 • 23-Feb-2026</p>
+    <p style="font-size:10px;color:#2196F3;font-weight:800;margin-top:2px;">BUILD 037 • 23-Feb-2026</p>
     <div class="tap-hint" id="tapHint"></div>
   </div>
   <div class="sync-banner" id="syncBanner"></div>
@@ -363,7 +363,7 @@ textarea:focus{border-color:#2196F3;}
       <div id="historyList"><div class="history-empty">No searches yet</div></div>
     </div>
   </div>
-  <div class="footer">Developed by <strong>SUSINFO</strong> • AOF Finder v6.0 • <strong style="color:#2196F3;">BUILD 036</strong></div>
+  <div class="footer">Developed by <strong>SUSINFO</strong> • AOF Finder v6.0 • <strong style="color:#2196F3;">BUILD 037</strong></div>
   <button onclick="sysConfigClick()" style="width:100%;margin-top:8px;padding:12px;border:2px dashed #ccc;border-radius:12px;background:#f8f9fa;color:#bbb;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;display:none;" id="adminConfigBtn2">⚙️ SYSTEM CONFIG</button>
 </div>
 
@@ -580,7 +580,7 @@ textarea:focus{border-color:#2196F3;}
     </div>
     <div class="settings-section">
       <div class="settings-section-title">ℹ️ App Info</div>
-      <div class="setting-row"><span class="setting-label">Version</span><span class="setting-value">v6.0 BUILD 036</span></div>
+      <div class="setting-row"><span class="setting-label">Version</span><span class="setting-value">v6.0 BUILD 037</span></div>
       <div class="setting-row"><span class="setting-label">Developer</span><span class="setting-value">SUSINFO</span></div>
       <div class="setting-row"><span class="setting-label">Max Records</span><span class="setting-value">2,00,000</span></div>
       <div class="setting-row"><span class="setting-label">Security</span><span class="setting-value">Device Approval</span></div>
@@ -936,7 +936,7 @@ function checkPin(){
     if(b1)b1.style.display='block';
     if(b2)b2.style.display='block';
     hideActivationScreen();
-    setPinError('🔑 Fetching keys...');
+    setPinError('🔑 Fetching keys from sheet...');
     loginSuccess(true, function(){
       setPinError('');
       showPinScreen(false);
@@ -2222,46 +2222,75 @@ function checkActivationWithSheet(){
 }
 
 
-function loginSuccess(isAdminUser, onComplete){
-  var url=getSheetUrl();
-  if(!url){
-    if(onComplete)onComplete();
-    return;
+function fetchViaXHR(url, onSuccess, onFail){
+  // Try XHR first
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', url, true);
+  xhr.timeout = 15000;
+  xhr.onload = function(){
+    try{
+      var data = JSON.parse(xhr.responseText);
+      onSuccess(data);
+    }catch(e){ onFail(); }
+  };
+  xhr.onerror = function(){ onFail(); };
+  xhr.ontimeout = function(){ onFail(); };
+  xhr.send();
+}
+
+function applyConfigData(data, isAdminUser){
+  if(!data||data.error) return;
+  if(data.geminiKey){
+    localStorage.setItem('geminiApiKey', data.geminiKey);
+    localStorage.setItem('aofGeminiKey', data.geminiKey);
   }
-  fetch(url+'?action=getConfig&key=AOF_FINDER',{redirect:'follow'})
-    .then(function(r){return r.json();})
+  if(data.groqKey){
+    localStorage.setItem('groqApiKey', data.groqKey);
+    localStorage.setItem('aofGroqKey', data.groqKey);
+  }
+  if(data.ocrKey){
+    localStorage.setItem('ocrApiKey', data.ocrKey);
+  }
+  if(data.scriptUrl){
+    localStorage.setItem('aofSheetUrl', data.scriptUrl);
+  }
+  if(isAdminUser){
+    var gkEl=document.getElementById('adminGeminiKey');
+    var grkEl=document.getElementById('adminGroqKey');
+    var okEl=document.getElementById('adminOcrKey');
+    if(gkEl&&data.geminiKey) gkEl.value=data.geminiKey;
+    if(grkEl&&data.groqKey)  grkEl.value=data.groqKey;
+    if(okEl&&data.ocrKey)    okEl.value=data.ocrKey;
+    var st=document.getElementById('keysLoadStatus');
+    if(st){st.textContent='✅ Keys loaded from Sheet!';setTimeout(function(){st.textContent='';},3000);}
+    if(typeof updateKeyStatus==='function') updateKeyStatus();
+  }
+}
+
+function loginSuccess(isAdminUser, onComplete){
+  var url = getSheetUrl();
+  if(!url){ if(onComplete)onComplete(); return; }
+  var configUrl = url+'?action=getConfig&key=AOF_FINDER';
+
+  // Try fetch first (PC Edge)
+  fetch(configUrl, {redirect:'follow'})
+    .then(function(r){ return r.json(); })
     .then(function(data){
-      if(!data.error){
-        if(data.geminiKey){
-          localStorage.setItem('geminiApiKey',data.geminiKey);
-          localStorage.setItem('aofGeminiKey',data.geminiKey);
-        }
-        if(data.groqKey){
-          localStorage.setItem('groqApiKey',data.groqKey);
-          localStorage.setItem('aofGroqKey',data.groqKey);
-        }
-        if(data.ocrKey){
-          localStorage.setItem('ocrApiKey',data.ocrKey);
-        }
-        if(data.scriptUrl){
-          localStorage.setItem('aofSheetUrl',data.scriptUrl);
-        }
-        if(isAdminUser){
-          var gkEl=document.getElementById('adminGeminiKey');
-          var grkEl=document.getElementById('adminGroqKey');
-          var okEl=document.getElementById('adminOcrKey');
-          if(gkEl&&data.geminiKey)gkEl.value=data.geminiKey;
-          if(grkEl&&data.groqKey)grkEl.value=data.groqKey;
-          if(okEl&&data.ocrKey)okEl.value=data.ocrKey;
-          var st=document.getElementById('keysLoadStatus');
-          if(st){st.textContent='✅ Keys loaded from Sheet!';setTimeout(function(){st.textContent='';},3000);}
-          if(typeof updateKeyStatus==='function')updateKeyStatus();
-        }
-      }
-      if(onComplete)onComplete();
+      applyConfigData(data, isAdminUser);
+      if(onComplete) onComplete();
     })
     .catch(function(){
-      if(onComplete)onComplete();
+      // fetch failed — try XHR (mobile Chrome/Vivo)
+      fetchViaXHR(configUrl,
+        function(data){
+          applyConfigData(data, isAdminUser);
+          if(onComplete) onComplete();
+        },
+        function(){
+          // Both failed — use cache, proceed anyway
+          if(onComplete) onComplete();
+        }
+      );
     });
 }
 
