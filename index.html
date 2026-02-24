@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>AOF Finder v6 - SUSINFO [BUILD 024]</title>
+<title>AOF Finder v6 - SUSINFO [BUILD 025]</title>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Segoe UI',Tahoma,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#0f3460 100%);min-height:100vh;display:flex;justify-content:center;padding:12px 10px 30px;}
@@ -310,7 +310,7 @@ textarea:focus{border-color:#2196F3;}
       <button class="pin-key del" onclick="pinDel()">⌫</button>
       <button class="pin-key zero" onclick="pinKey('0')">0</button>
     </div>
-    <div style="font-size:10px;color:#bbb;text-align:center;margin-top:8px;">SUSINFO • BUILD 024</div>
+    <div style="font-size:10px;color:#bbb;text-align:center;margin-top:8px;">SUSINFO • BUILD 025</div>
   </div>
 </div>
 
@@ -319,7 +319,7 @@ textarea:focus{border-color:#2196F3;}
   <div class="header" id="mainHeader" onclick="headerTap()">
     <h1>🔍 AOF Finder v6</h1>
     <p>SUSINFO — World Class Edition</p>
-    <p style="font-size:10px;color:#2196F3;font-weight:800;margin-top:2px;">BUILD 024 • 23-Feb-2026</p>
+    <p style="font-size:10px;color:#2196F3;font-weight:800;margin-top:2px;">BUILD 025 • 23-Feb-2026</p>
     <div class="tap-hint" id="tapHint"></div>
   </div>
   <div class="sync-banner" id="syncBanner"></div>
@@ -363,7 +363,7 @@ textarea:focus{border-color:#2196F3;}
       <div id="historyList"><div class="history-empty">No searches yet</div></div>
     </div>
   </div>
-  <div class="footer">Developed by <strong>SUSINFO</strong> • AOF Finder v6.0 • <strong style="color:#2196F3;">BUILD 024</strong></div>
+  <div class="footer">Developed by <strong>SUSINFO</strong> • AOF Finder v6.0 • <strong style="color:#2196F3;">BUILD 025</strong></div>
   <button onclick="sysConfigClick()" style="width:100%;margin-top:8px;padding:12px;border:2px dashed #ccc;border-radius:12px;background:#f8f9fa;color:#bbb;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;">⚙️ SYSTEM CONFIG</button>
 </div>
 
@@ -580,7 +580,7 @@ textarea:focus{border-color:#2196F3;}
     </div>
     <div class="settings-section">
       <div class="settings-section-title">ℹ️ App Info</div>
-      <div class="setting-row"><span class="setting-label">Version</span><span class="setting-value">v6.0 BUILD 024</span></div>
+      <div class="setting-row"><span class="setting-label">Version</span><span class="setting-value">v6.0 BUILD 025</span></div>
       <div class="setting-row"><span class="setting-label">Developer</span><span class="setting-value">SUSINFO</span></div>
       <div class="setting-row"><span class="setting-label">Max Records</span><span class="setting-value">2,00,000</span></div>
       <div class="setting-row"><span class="setting-label">Security</span><span class="setting-value">Device Approval</span></div>
@@ -1993,7 +1993,7 @@ function testSheetUrl(){
   }
   if(btn){btn.textContent='🔄 Testing...';btn.style.background='linear-gradient(135deg,#FF9800,#F57C00)';}
   if(statusEl)statusEl.textContent='🔄 Testing connection...';
-  fetch(url+'?action=test&key=AOF_FINDER',{redirect:'follow'})
+  fetch(url+'?action=test&key=AOF_FINDER')
     .then(r=>r.json())
     .then(d=>{
       if(btn){btn.textContent='🟢 CONNECTED ✅ Google Sheet Working!';btn.style.background='linear-gradient(135deg,#4CAF50,#2e7d32)';}
@@ -2016,15 +2016,16 @@ function refreshDeviceList(){
     return;
   }
   el.innerHTML='<div style="text-align:center;padding:16px;font-size:13px;color:#1565C0;font-weight:700;">🔄 Loading devices...</div>';
-  fetch(url+'?action=list&key=AOF_FINDER&password=8700',{redirect:'follow'})
-    .then(function(r){
-      if(!r.ok)throw new Error('HTTP '+r.status);
-      return r.text();
-    })
-    .then(function(text){
+  var xhrList=new XMLHttpRequest();
+  xhrList.open('GET',url+'?action=list&key=AOF_FINDER&password=8700',true);
+  xhrList.timeout=15000;
+  xhrList.onerror=function(){el.innerHTML='<div style="background:#fce4ec;border:2px solid #e53935;border-radius:10px;padding:12px;text-align:center;font-size:12px;color:#c62828;font-weight:700;">❌ Cannot load!<br><small>Network error</small><br><button onclick="refreshDeviceList()" style="margin-top:8px;padding:8px 16px;border:none;border-radius:8px;background:#2196F3;color:#fff;font-weight:800;cursor:pointer;">🔄 RETRY</button></div>';};
+  xhrList.ontimeout=function(){el.innerHTML='<div style="background:#fce4ec;border:2px solid #e53935;border-radius:10px;padding:12px;text-align:center;font-size:12px;color:#c62828;font-weight:700;">⏱ Timeout!<br><button onclick="refreshDeviceList()" style="margin-top:8px;padding:8px 16px;border:none;border-radius:8px;background:#2196F3;color:#fff;font-weight:800;cursor:pointer;">🔄 RETRY</button></div>';};
+  xhrList.onload=function(){
+  var text=xhrList.responseText;
       var data;
       try{data=JSON.parse(text);}
-      catch(e){throw new Error('Bad response: '+text.slice(0,50));}
+      catch(e){el.innerHTML='<div style="color:red;padding:12px;">❌ Bad response!</div>';return;}
       if(!data.devices||data.devices.length===0){
         el.innerHTML='<div style="text-align:center;padding:16px;font-size:13px;color:#888;">📭 No devices yet!<br><small>When team opens app they appear here</small></div>';
         return;
@@ -2045,33 +2046,40 @@ function refreshDeviceList(){
           '<div class="device-info" style="font-size:10px;color:#888;margin:4px 0;">ID: '+dev.deviceId+(dev.city?' • '+dev.city:'')+(dev.openCount?' • Opens: '+dev.openCount:'')+'</div>'+
           '<div class="device-actions" style="display:flex;gap:6px;margin-top:8px;">'+unlockBtn+appBtn+blkBtn+delBtn+'</div></div>';
       }).join('');
-    })
-    .catch(function(err){
-      el.innerHTML='<div style="background:#fce4ec;border:2px solid #e53935;border-radius:10px;padding:12px;text-align:center;font-size:12px;color:#c62828;font-weight:700;">❌ Cannot load!<br><small>'+err.message+'</small><br><button onclick="refreshDeviceList()" style="margin-top:8px;padding:8px 16px;border:none;border-radius:8px;background:#2196F3;color:#fff;font-weight:800;cursor:pointer;">🔄 RETRY</button></div>';
-    });
+  };
+  xhrList.send();
 }
 
+function xhrAction(url,cb){
+  var x=new XMLHttpRequest();
+  x.open('GET',url,true);
+  x.timeout=10000;
+  x.onload=function(){cb(true);};
+  x.onerror=function(){cb(false);};
+  x.ontimeout=function(){cb(false);};
+  x.send();
+}
 function approveDevice(btn){
   var deviceId=btn.getAttribute('data-id');
-  const url=getSheetUrl();if(!url)return;
-  fetch(url+'?action=update&key=AOF_FINDER&password=8700&deviceId='+encodeURIComponent(deviceId)+'&status=approved',{redirect:'follow'})
-    .then(function(){alert('✅ Approved!');refreshDeviceList();})
-    .catch(function(){alert('❌ Failed!');});
+  var url=getSheetUrl();if(!url)return;
+  xhrAction(url+'?action=update&key=AOF_FINDER&password=8700&deviceId='+encodeURIComponent(deviceId)+'&status=approved',function(ok){
+    alert(ok?'✅ Approved!':'❌ Failed!');if(ok)refreshDeviceList();
+  });
 }
 function blockDevice(btn){
   var deviceId=btn.getAttribute('data-id');
-  const url=getSheetUrl();if(!url)return;
-  fetch(url+'?action=update&key=AOF_FINDER&password=8700&deviceId='+encodeURIComponent(deviceId)+'&status=blocked',{redirect:'follow'})
-    .then(function(){alert('✅ Blocked!');refreshDeviceList();})
-    .catch(function(){alert('❌ Failed!');});
+  var url=getSheetUrl();if(!url)return;
+  xhrAction(url+'?action=update&key=AOF_FINDER&password=8700&deviceId='+encodeURIComponent(deviceId)+'&status=blocked',function(ok){
+    alert(ok?'✅ Blocked!':'❌ Failed!');if(ok)refreshDeviceList();
+  });
 }
 function deleteDevice(btn){
   var deviceId=btn.getAttribute('data-id');
   if(!confirm('Delete this device?'))return;
-  const url=getSheetUrl();if(!url)return;
-  fetch(url+'?action=delete&key=AOF_FINDER&password=8700&deviceId='+encodeURIComponent(deviceId),{redirect:'follow'})
-    .then(function(){alert('✅ Deleted!');refreshDeviceList();})
-    .catch(function(){alert('❌ Failed!');});
+  var url=getSheetUrl();if(!url)return;
+  xhrAction(url+'?action=delete&key=AOF_FINDER&password=8700&deviceId='+encodeURIComponent(deviceId),function(ok){
+    alert(ok?'✅ Deleted!':'❌ Failed!');if(ok)refreshDeviceList();
+  });
 }
 function clearAllDevices(){
   if(!confirm('Clear ALL devices?'))return;
