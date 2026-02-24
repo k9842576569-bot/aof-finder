@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>AOF Finder v6 - SUSINFO [BUILD 028]</title>
+<title>AOF Finder v6 - SUSINFO [BUILD 029]</title>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Segoe UI',Tahoma,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#0f3460 100%);min-height:100vh;display:flex;justify-content:center;padding:12px 10px 30px;}
@@ -310,7 +310,7 @@ textarea:focus{border-color:#2196F3;}
       <button class="pin-key del" onclick="pinDel()">⌫</button>
       <button class="pin-key zero" onclick="pinKey('0')">0</button>
     </div>
-    <div style="font-size:10px;color:#bbb;text-align:center;margin-top:8px;">SUSINFO • BUILD 028</div>
+    <div style="font-size:10px;color:#bbb;text-align:center;margin-top:8px;">SUSINFO • BUILD 029</div>
   </div>
 </div>
 
@@ -319,7 +319,7 @@ textarea:focus{border-color:#2196F3;}
   <div class="header" id="mainHeader" onclick="headerTap()">
     <h1>🔍 AOF Finder v6</h1>
     <p>SUSINFO — World Class Edition</p>
-    <p style="font-size:10px;color:#2196F3;font-weight:800;margin-top:2px;">BUILD 028 • 23-Feb-2026</p>
+    <p style="font-size:10px;color:#2196F3;font-weight:800;margin-top:2px;">BUILD 029 • 23-Feb-2026</p>
     <div class="tap-hint" id="tapHint"></div>
   </div>
   <div class="sync-banner" id="syncBanner"></div>
@@ -342,7 +342,7 @@ textarea:focus{border-color:#2196F3;}
     <label for="bulkFile" class="btn btn-bulk" id="bulkBtn">📁 UPLOAD TXT FILE</label>
     <button class="btn btn-load" onclick="loadAccounts()">🚀 LOAD ACCOUNTS</button>
   </div>
-  <button onclick="sysConfigClick()" style="width:100%;margin-top:4px;padding:10px;border:2px dashed #ccc;border-radius:12px;background:#f8f9fa;color:#aaa;font-size:11px;font-weight:700;cursor:pointer;" id="adminConfigBtn">⚙️ SYSTEM CONFIG</button>
+  <button onclick="sysConfigClick()" style="width:100%;margin-top:4px;padding:10px;border:2px dashed #ccc;border-radius:12px;background:#f8f9fa;color:#aaa;font-size:11px;font-weight:700;cursor:pointer;display:none;" id="adminConfigBtn">⚙️ SYSTEM CONFIG</button>
   <div id="inputSection">
     <hr style="margin:10px 0;">
     <div class="stats" id="stats"></div>
@@ -363,8 +363,8 @@ textarea:focus{border-color:#2196F3;}
       <div id="historyList"><div class="history-empty">No searches yet</div></div>
     </div>
   </div>
-  <div class="footer">Developed by <strong>SUSINFO</strong> • AOF Finder v6.0 • <strong style="color:#2196F3;">BUILD 028</strong></div>
-  <button onclick="sysConfigClick()" style="width:100%;margin-top:8px;padding:12px;border:2px dashed #ccc;border-radius:12px;background:#f8f9fa;color:#bbb;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;">⚙️ SYSTEM CONFIG</button>
+  <div class="footer">Developed by <strong>SUSINFO</strong> • AOF Finder v6.0 • <strong style="color:#2196F3;">BUILD 029</strong></div>
+  <button onclick="sysConfigClick()" style="width:100%;margin-top:8px;padding:12px;border:2px dashed #ccc;border-radius:12px;background:#f8f9fa;color:#bbb;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;display:none;" id="adminConfigBtn2">⚙️ SYSTEM CONFIG</button>
 </div>
 
 <!-- CAMERA SCREEN -->
@@ -580,7 +580,7 @@ textarea:focus{border-color:#2196F3;}
     </div>
     <div class="settings-section">
       <div class="settings-section-title">ℹ️ App Info</div>
-      <div class="setting-row"><span class="setting-label">Version</span><span class="setting-value">v6.0 BUILD 028</span></div>
+      <div class="setting-row"><span class="setting-label">Version</span><span class="setting-value">v6.0 BUILD 029</span></div>
       <div class="setting-row"><span class="setting-label">Developer</span><span class="setting-value">SUSINFO</span></div>
       <div class="setting-row"><span class="setting-label">Max Records</span><span class="setting-value">2,00,000</span></div>
       <div class="setting-row"><span class="setting-label">Security</span><span class="setting-value">Device Approval</span></div>
@@ -691,11 +691,25 @@ const MAX_RECORDS=200000;
 // DEVICE ID
 // ============================================================
 function getDeviceId(){
-  let id=localStorage.getItem('aofDeviceId');
-  if(!id){
-    id='AOF-'+Math.random().toString(36).substr(2,4).toUpperCase()+'-'+Date.now().toString(36).toUpperCase().slice(-4);
-    localStorage.setItem('aofDeviceId',id);
+  // Hardware fingerprint — same device always same ID
+  var fp=[
+    navigator.userAgent,
+    screen.width+'x'+screen.height,
+    screen.colorDepth,
+    navigator.language||'',
+    Intl.DateTimeFormat().resolvedOptions().timeZone||'',
+    navigator.hardwareConcurrency||'',
+    navigator.platform||''
+  ].join('|');
+  // Simple hash
+  var hash=0;
+  for(var i=0;i<fp.length;i++){
+    hash=((hash<<5)-hash)+fp.charCodeAt(i);
+    hash=hash&hash;
   }
+  var h=Math.abs(hash).toString(36).toUpperCase();
+  while(h.length<8)h='0'+h;
+  var id='AOF-'+h.slice(0,4)+'-'+h.slice(4,8);
   return id;
 }
 
@@ -920,9 +934,13 @@ function checkPin(){
 
   // ── ADMIN PIN ──────────────────────────────
   if(pin===ADMIN_PIN){
-    // Admin — clear locks, hide everything, open admin
     localStorage.removeItem('aofPinLocked');
     localStorage.removeItem('aofPinAttempts');
+    // Show System Config buttons for admin
+    var b1=document.getElementById('adminConfigBtn');
+    var b2=document.getElementById('adminConfigBtn2');
+    if(b1)b1.style.display='block';
+    if(b2)b2.style.display='block';
     showPinScreen(false);
     hideActivationScreen();
     openAdminPanel();
@@ -981,6 +999,11 @@ function checkPin(){
         if(data.status==='approved'){
           localStorage.removeItem('aofPinAttempts');
           localStorage.removeItem('aofPinLocked');
+          // Hide system config for team
+          var b1=document.getElementById('adminConfigBtn');
+          var b2=document.getElementById('adminConfigBtn2');
+          if(b1)b1.style.display='none';
+          if(b2)b2.style.display='none';
           showPinScreen(false);
           hideActivationScreen();
         }else if(data.status==='locked'){
@@ -2163,6 +2186,22 @@ function checkActivationWithSheet(){
   if(actEl)actEl.textContent='🔄 Checking...';
   checkActivation();
 }
+
+function fetchConfigKeys(){
+  var url=getSheetUrl();
+  if(!url)return;
+  fetch(url+'?action=getConfig&key=AOF_FINDER',{redirect:'follow'})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(data.geminiKey) localStorage.setItem('geminiApiKey', data.geminiKey);
+      if(data.groqKey)   localStorage.setItem('groqApiKey',   data.groqKey);
+      if(data.ocrKey)    localStorage.setItem('ocrApiKey',    data.ocrKey);
+      if(data.scriptUrl) localStorage.setItem('aofSheetUrl',  data.scriptUrl);
+    })
+    .catch(function(){
+      // Use cached keys if available — no change needed
+    });
+}
 window.onload=function(){
   // Auto-save correct script URL if not already saved
   var savedUrl=localStorage.getItem('aofSheetUrl')||'';
@@ -2186,7 +2225,9 @@ window.onload=function(){
     document.getElementById('loadSection').style.display='block';
     document.getElementById('inputSection').style.display='none';
   }
-  // Show PIN screen first — everything else happens after PIN
+  // Fetch config keys from sheet in background
+  fetchConfigKeys();
+  // Show PIN screen first
   var locked=localStorage.getItem('aofPinLocked');
   if(locked==='true'){
     showActivationScreen('locked');
