@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>AOF Finder v6 - SUSINFO [BUILD 037]</title>
+<title>AOF Finder v6 - SUSINFO [BUILD 038]</title>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Segoe UI',Tahoma,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#0f3460 100%);min-height:100vh;display:flex;justify-content:center;padding:12px 10px 30px;}
@@ -310,7 +310,7 @@ textarea:focus{border-color:#2196F3;}
       <button class="pin-key del" onclick="pinDel()">⌫</button>
       <button class="pin-key zero" onclick="pinKey('0')">0</button>
     </div>
-    <div style="font-size:10px;color:#bbb;text-align:center;margin-top:8px;">SUSINFO • BUILD 037</div>
+    <div style="font-size:10px;color:#bbb;text-align:center;margin-top:8px;">SUSINFO • BUILD 038</div>
   </div>
 </div>
 
@@ -319,7 +319,7 @@ textarea:focus{border-color:#2196F3;}
   <div class="header" id="mainHeader" onclick="headerTap()">
     <h1>🔍 AOF Finder v6</h1>
     <p>SUSINFO — World Class Edition</p>
-    <p style="font-size:10px;color:#2196F3;font-weight:800;margin-top:2px;">BUILD 037 • 23-Feb-2026</p>
+    <p style="font-size:10px;color:#2196F3;font-weight:800;margin-top:2px;">BUILD 038 • 23-Feb-2026</p>
     <div class="tap-hint" id="tapHint"></div>
   </div>
   <div class="sync-banner" id="syncBanner"></div>
@@ -363,7 +363,7 @@ textarea:focus{border-color:#2196F3;}
       <div id="historyList"><div class="history-empty">No searches yet</div></div>
     </div>
   </div>
-  <div class="footer">Developed by <strong>SUSINFO</strong> • AOF Finder v6.0 • <strong style="color:#2196F3;">BUILD 037</strong></div>
+  <div class="footer">Developed by <strong>SUSINFO</strong> • AOF Finder v6.0 • <strong style="color:#2196F3;">BUILD 038</strong></div>
   <button onclick="sysConfigClick()" style="width:100%;margin-top:8px;padding:12px;border:2px dashed #ccc;border-radius:12px;background:#f8f9fa;color:#bbb;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;display:none;" id="adminConfigBtn2">⚙️ SYSTEM CONFIG</button>
 </div>
 
@@ -580,7 +580,7 @@ textarea:focus{border-color:#2196F3;}
     </div>
     <div class="settings-section">
       <div class="settings-section-title">ℹ️ App Info</div>
-      <div class="setting-row"><span class="setting-label">Version</span><span class="setting-value">v6.0 BUILD 037</span></div>
+      <div class="setting-row"><span class="setting-label">Version</span><span class="setting-value">v6.0 BUILD 038</span></div>
       <div class="setting-row"><span class="setting-label">Developer</span><span class="setting-value">SUSINFO</span></div>
       <div class="setting-row"><span class="setting-label">Max Records</span><span class="setting-value">2,00,000</span></div>
       <div class="setting-row"><span class="setting-label">Security</span><span class="setting-value">Device Approval</span></div>
@@ -894,6 +894,21 @@ function headerTap(){
   }
   headerTapTimer=setTimeout(function(){headerTapCount=0;},3000);
 }
+// Back button handler
+window.addEventListener('popstate', function(e){
+  e.preventDefault();
+  if(confirm('Exit AOF Finder?')){
+    window.close();
+    // For Android
+    navigator.app && navigator.app.exitApp && navigator.app.exitApp();
+  } else {
+    history.pushState(null, '', window.location.href);
+  }
+});
+// Push state to enable back button intercept
+window.addEventListener('load', function(){
+  history.pushState(null, '', window.location.href);
+});
 // Footer click disabled — use SYSTEM CONFIG button only
 function adminSecretClick(){ /* disabled */ }
 function openAdminPin(){
@@ -936,7 +951,7 @@ function checkPin(){
     if(b1)b1.style.display='block';
     if(b2)b2.style.display='block';
     hideActivationScreen();
-    setPinError('🔑 Fetching keys...');
+    setPinError('🔑 Fetching keys from sheet...');
     loginSuccess(true, function(){
       setPinError('');
       showPinScreen(false);
@@ -1045,6 +1060,9 @@ function checkPin(){
   }
 }
 
+function showForgotPin(){
+  alert('🔑 Forgot PIN?\n\nContact Admin:\nSureshKumar\n📞 9842576569');
+}
 function setPinError(msg){
   var el=document.getElementById('pinError');
   if(el){el.textContent=msg;el.style.display=msg?'block':'none';}
@@ -1181,6 +1199,9 @@ function loadAccounts(){
   if(valid.length===0){alert('❌ No 11-digit numbers found!');return;}
   if(valid.length>MAX_RECORDS){valid=valid.slice(0,MAX_RECORDS);alert('⚠️ Trimmed to '+MAX_RECORDS.toLocaleString()+' records (maximum capacity)');}
   saveAndActivateAccounts(valid,'Manual Upload');
+}
+function searchBoth(){
+  checkAccount();
 }
 function checkAccount(){
   const input=document.getElementById('accountInput'),q=input.value.trim();
@@ -1590,117 +1611,245 @@ function checkSignal(){
   else warn.classList.remove('show');
 }
 function showOcrStatus(msg,type){const el=document.getElementById('ocrStatus');el.textContent=msg;el.className='ocr-status '+type;}
-function sendToOnlineOCR(b64){
-  const apiKey=localStorage.getItem('ocrApiKey')||'';
-  if(!apiKey){
-    // Try fetching keys again first
-    showOcrStatus('🔄 Loading OCR key...','scanning');
-    var url=getSheetUrl();
-    if(url){
-      fetch(url+'?action=getConfig&key=AOF_FINDER',{redirect:'follow'})
-        .then(function(r){return r.json();})
-        .then(function(data){
-          if(data.ocrKey){
-            localStorage.setItem('ocrApiKey',data.ocrKey);
-            showOcrStatus('✅ Key loaded! Scanning...','scanning');
-            setTimeout(function(){sendToOnlineOCR(b64);},500);
-          }else{
-            showOcrStatus('🔄 No OCR key — using offline...','scanning');
-            setTimeout(runTesseractOcr,300);
-          }
-        })
-        .catch(function(){
-          showOcrStatus('🔄 Using offline scan...','scanning');
-          setTimeout(runTesseractOcr,300);
-        });
-    }else{
-      showOcrStatus('🔄 Using offline scan...','scanning');
-      setTimeout(runTesseractOcr,300);
-    }
+function getDeviceOCRMethods(){
+  // Get OCR assignment for this device from localStorage
+  // Loaded at login from OCR_Assignment sheet
+  var assignment = localStorage.getItem('aofOCRAssignment');
+  if(assignment){
+    try{
+      var arr = JSON.parse(assignment);
+      if(arr && arr.length > 0) return arr;
+    }catch(e){}
+  }
+  // Default: Auto (all 4 in order)
+  return ['gemini','groq','ocrspace','tesseract'];
+}
+
+function showOcrStep(msg, mode){
+  if(mode==='inst') showInstOcrStatus(msg,'scanning');
+  else showOcrStatus(msg,'scanning');
+}
+
+// ── MASTER OCR FUNCTION ────────────────────────────────────
+function smartOCR(b64, mode, methodList, index){
+  if(!methodList) methodList = getDeviceOCRMethods();
+  if(!index) index = 0;
+
+  // All methods exhausted
+  if(index >= methodList.length){
+    // Show manual input popup
+    showManualInputPopup(mode);
     return;
   }
-  showOcrStatus('🌐 Online OCR scanning...','scanning');
-  if(ocrTimeoutId)clearTimeout(ocrTimeoutId);
-  ocrTimeoutId=setTimeout(()=>{showOcrStatus('⏱️ Timeout! Switching to offline...','error');sendToOfflineOCR(b64,'cam');},15000);
-  const b64data=b64.replace(/^data:image\/(png|jpeg|jpg);base64,/,'');
-  const fd=new FormData();
-  fd.append('base64Image','data:image/jpeg;base64,'+b64data);
-  fd.append('apikey',apiKey);fd.append('language','eng');
-  fd.append('isOverlayRequired','false');fd.append('detectOrientation','true');
-  fd.append('scale','true');fd.append('OCREngine','2');
-  fetch('https://api.ocr.space/parse/image',{method:'POST',body:fd})
-    .then(res=>res.json())
-    .then(data=>{
-      clearTimeout(ocrTimeoutId);
-      if(data.IsErroredOnProcessing){showOcrStatus('❌ OCR Error — offline fallback','error');sendToOfflineOCR(b64,'cam');return;}
-      const text=data.ParsedResults&&data.ParsedResults[0]?data.ParsedResults[0].ParsedText:'';
-      processOCRText(text,'cam');
-    })
-    .catch(()=>{clearTimeout(ocrTimeoutId);showOcrStatus('❌ Network error — offline fallback','error');sendToOfflineOCR(b64,'cam');});
-}
-function sendToOfflineOCR(b64,mode){
-  const statusFn=mode==='inst'?showInstOcrStatus:showOcrStatus;
-  statusFn('📵 Offline OCR scanning... (10-15 sec)','scanning');
-  if(typeof Tesseract==='undefined'){
-    const s=document.createElement('script');
-    s.src='https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js';
-    s.onload=()=>runTesseract(b64,mode);
-    s.onerror=()=>statusFn('❌ Cannot load offline OCR.','error');
-    document.head.appendChild(s);
-  }else runTesseract(b64,mode);
-}
-function runTesseract(b64,mode){
-  Tesseract.recognize(b64,'eng',{logger:()=>{}})
-    .then(({data:{text}})=>processOCRText(text,mode))
-    .catch(()=>{
-      const fn=mode==='inst'?showInstOcrStatus:showOcrStatus;
-      fn('❌ Offline OCR failed. Try better lighting.','error');
-    });
-}
-function processOCRText(rawText,mode){
-  const allGroups=[];
-  rawText.split(/\r?\n|\r/).forEach(line=>{
-    const clean=smartCorrect(line);
-    if(clean.length>=11){
-      for(let i=0;i<=clean.length-11;i++){
-        const chunk=clean.slice(i,i+11);
-        if(!allGroups.includes(chunk))allGroups.push(chunk);
-      }
+
+  var method = methodList[index];
+  var next = function(){ smartOCR(b64, mode, methodList, index+1); };
+
+  if(method === 'gemini'){
+    var key = localStorage.getItem('geminiApiKey')||localStorage.getItem('aofGeminiKey')||'';
+    if(!key){ next(); return; }
+    showOcrStep('🤖 Trying Gemini AI...', mode);
+    tryGeminiOCR(b64, key,
+      function(num){ handleOCRResult(num, mode, 'Gemini AI'); },
+      function(){ next(); }
+    );
+  }
+  else if(method === 'groq'){
+    var key = localStorage.getItem('groqApiKey')||localStorage.getItem('aofGroqKey')||'';
+    if(!key){ next(); return; }
+    showOcrStep('🧠 Trying Groq AI...', mode);
+    tryGroqOCR(b64, key,
+      function(num){ handleOCRResult(num, mode, 'Groq AI'); },
+      function(){ next(); }
+    );
+  }
+  else if(method === 'ocrspace'){
+    var key = localStorage.getItem('ocrApiKey')||'';
+    if(!key){ next(); return; }
+    showOcrStep('🌐 Trying OCR.space...', mode);
+    tryOCRSpace(b64, key,
+      function(num){ handleOCRResult(num, mode, 'OCR.space'); },
+      function(){ next(); }
+    );
+  }
+  else if(method === 'tesseract'){
+    if(!navigator.onLine){
+      showOcrStep('📵 Trying offline scan...', mode);
+    } else {
+      showOcrStep('📵 Trying Tesseract...', mode);
     }
-  });
+    tryTesseract(b64, mode,
+      function(num){ handleOCRResult(num, mode, 'Tesseract'); },
+      function(){ next(); }
+    );
+  }
+}
+
+function handleOCRResult(number, mode, source){
+  if(!number || number.length < 8){
+    // Invalid result — try next
+    return false;
+  }
+  // Clean number
+  number = number.replace(/[^0-9]/g,'').trim();
+  if(number.length < 8) return false;
+  // Take first 11 digits
+  if(number.length > 11) number = number.substring(0,11);
+
   if(mode==='inst'){
-    processInstantResult(allGroups);return;
+    showInstOcrStatus('✅ '+source+': '+number,'ok');
+  } else {
+    showOcrStatus('✅ '+source+' found: '+number,'ok');
+    document.getElementById('accountInput').value = number;
   }
-  if(allGroups.length===0){
-    showOcrStatus('⚠️ No 11-digit numbers found — try again','error');
-    document.getElementById('extractedSection').style.display='none';
-    document.getElementById('searchBothBtn').style.display='none';return;
+  // Auto search
+  setTimeout(function(){
+    document.getElementById('accountInput').value = number;
+    checkAccount();
+  }, 500);
+  return true;
+}
+
+// Manual input popup when all OCR fails
+function showManualInputPopup(mode){
+  var existing = document.getElementById('manualOcrPopup');
+  if(existing) existing.remove();
+  var popup = document.createElement('div');
+  popup.id = 'manualOcrPopup';
+  popup.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:999999;display:flex;align-items:center;justify-content:center;';
+  popup.innerHTML = '<div style="background:#1a1a2e;border:2px solid #2196F3;border-radius:16px;padding:24px;width:85%;max-width:320px;text-align:center;">' +
+    '<div style="font-size:28px;margin-bottom:8px;">❌</div>' +
+    '<div style="color:#fff;font-size:15px;font-weight:800;margin-bottom:6px;">All OCR methods failed!</div>' +
+    '<div style="color:#aaa;font-size:12px;margin-bottom:16px;">Please enter number manually</div>' +
+    '<input id="manualOcrInput" type="number" maxlength="11" placeholder="Enter 11-digit number" ' +
+    'style="width:100%;padding:12px;border-radius:10px;border:2px solid #2196F3;background:#0a0a1a;color:#fff;font-size:16px;text-align:center;box-sizing:border-box;" ' +
+    'oninput="if(this.value.length>=11){this.value=this.value.slice(0,11);manualOcrSearch();}">' +
+    '<div style="display:flex;gap:8px;margin-top:12px;">' +
+    '<button onclick="closeManualPopup();" ' +
+    'style="flex:1;padding:12px;border:none;border-radius:10px;background:#555;color:#fff;font-weight:800;font-size:14px;">❌ CANCEL</button>' +
+    '<button onclick="manualOcrSearch();" ' +
+    'style="flex:1;padding:12px;border:none;border-radius:10px;background:#2196F3;color:#fff;font-weight:800;font-size:14px;">🔍 SEARCH</button>' +
+    '</div></div>';
+  document.body.appendChild(popup);
+  setTimeout(function(){
+    var inp = document.getElementById('manualOcrInput');
+    if(inp) inp.focus();
+  }, 300);
+}
+
+function closeManualPopup(){
+  var p=document.getElementById('manualOcrPopup');
+  if(p)p.remove();
+}
+function manualOcrSearch(){
+  var inp = document.getElementById('manualOcrInput');
+  if(!inp) return;
+  var num = inp.value.replace(/[^0-9]/g,'').slice(0,11);
+  if(num.length < 8){ inp.style.border='2px solid #f44336'; return; }
+  document.getElementById('manualOcrPopup').remove();
+  document.getElementById('accountInput').value = num;
+  checkAccount();
+}
+
+// ── GEMINI OCR ─────────────────────────────────────────────
+function tryGeminiOCR(b64, apiKey, onSuccess, onFail){
+  var base64Data = b64.replace(/^data:image\/[a-z]+;base64,/,'');
+  var body = JSON.stringify({
+    contents:[{parts:[
+      {text:'Read ONLY the 11-digit mobile number from this image. Return numbers only, no spaces, no other text.'},
+      {inline_data:{mime_type:'image/jpeg',data:base64Data}}
+    ]}]
+  });
+  fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+apiKey,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:body
+  })
+  .then(function(r){return r.json();})
+  .then(function(data){
+    try{
+      var text = data.candidates[0].content.parts[0].text;
+      var num = text.replace(/[^0-9]/g,'').slice(0,11);
+      if(num.length >= 8) onSuccess(num);
+      else onFail();
+    }catch(e){ onFail(); }
+  })
+  .catch(function(){ onFail(); });
+}
+
+// ── GROQ OCR ───────────────────────────────────────────────
+function tryGroqOCR(b64, apiKey, onSuccess, onFail){
+  var base64Data = b64.replace(/^data:image\/[a-z]+;base64,/,'');
+  var body = JSON.stringify({
+    model:'meta-llama/llama-4-scout-17b-16e-instruct',
+    messages:[{role:'user',content:[
+      {type:'text',text:'Read ONLY the 11-digit mobile number from this image. Return numbers only, no spaces, no other text.'},
+      {type:'image_url',image_url:{url:'data:image/jpeg;base64,'+base64Data}}
+    ]}],
+    max_tokens:50
+  });
+  fetch('https://api.groq.com/openai/v1/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+    body:body
+  })
+  .then(function(r){return r.json();})
+  .then(function(data){
+    try{
+      var text = data.choices[0].message.content;
+      var num = text.replace(/[^0-9]/g,'').slice(0,11);
+      if(num.length >= 8) onSuccess(num);
+      else onFail();
+    }catch(e){ onFail(); }
+  })
+  .catch(function(){ onFail(); });
+}
+
+// ── OCR.SPACE ──────────────────────────────────────────────
+function tryOCRSpace(b64, apiKey, onSuccess, onFail){
+  var formData = new FormData();
+  formData.append('base64Image', b64);
+  formData.append('apikey', apiKey);
+  formData.append('language', 'eng');
+  formData.append('isNumericOnly', 'true');
+  formData.append('OCREngine', '2');
+  fetch('https://api.ocr.space/parse/image',{method:'POST',body:formData})
+  .then(function(r){return r.json();})
+  .then(function(data){
+    try{
+      var text = data.ParsedResults[0].ParsedText;
+      var num = text.replace(/[^0-9]/g,'').slice(0,11);
+      if(num.length >= 8) onSuccess(num);
+      else onFail();
+    }catch(e){ onFail(); }
+  })
+  .catch(function(){ onFail(); });
+}
+
+// ── TESSERACT ──────────────────────────────────────────────
+function tryTesseract(b64, mode, onSuccess, onFail){
+  function runTess(){
+    Tesseract.recognize(b64,'eng',{
+      logger:function(){},
+      tessedit_char_whitelist:'0123456789'
+    }).then(function(result){
+      var num = result.data.text.replace(/[^0-9]/g,'').slice(0,11);
+      if(num.length >= 8) onSuccess(num);
+      else onFail();
+    }).catch(function(){ onFail(); });
   }
-  showOcrStatus('✅ Extracted! Check → SEARCH BOTH','done');
-  document.getElementById('extCustId').value=allGroups[0]||'';
-  document.getElementById('extAccNo').value=allGroups[1]||allGroups[0]||'';
-  document.getElementById('extractedSection').style.display='block';
-  document.getElementById('searchBothBtn').style.display='block';
+  if(typeof Tesseract==='undefined'){
+    var s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/tesseract.js@2/dist/tesseract.min.js';
+    s.onload=runTess;
+    s.onerror=function(){ onFail(); };
+    document.head.appendChild(s);
+  } else { runTess(); }
 }
-function searchBoth(){
-  const cid=document.getElementById('extCustId').value.trim(),acc=document.getElementById('extAccNo').value.trim();
-  const v1=cid.length===11&&/^\d{11}$/.test(cid),v2=acc.length===11&&/^\d{11}$/.test(acc);
-  if(!v1&&!v2){setCamResult('⚠️ No valid 11-digit numbers','',null);return;}
-  if(v1)checkDuplicate(cid);if(v2&&acc!==cid)checkDuplicate(acc);
-  const f1=v1&&accountsSet.has(cid),f2=v2&&accountsSet.has(acc),either=f1||f2;
-  let sub=v1&&v2?'Customer ID: '+(f1?'✅ FOUND':'❌ NOT FOUND')+' | Account No: '+(f2?'✅ FOUND':'❌ NOT FOUND'):
-    v1?'Customer ID: '+(f1?'✅ FOUND':'❌ NOT FOUND'):'Account No: '+(f2?'✅ FOUND':'❌ NOT FOUND');
-  setCamResult(either?'✅ FOUND':'❌ NOT FOUND',sub,either);
-  speakResult(either);vibrateResult(either);playSound(either);
-  if(v1){addHistory(cid,'📷 Cam',f1);addReport('cam',f1);if(!f1)addNotFound(cid,'📷 Cam');}
-  if(v2&&acc!==cid){addHistory(acc,'📷 Cam',f2);if(!f2)addNotFound(acc,'📷 Cam');}
-  updateSession(either);
-}
-function setCamResult(msg,sub,found){
-  const el=document.getElementById('camResult');el.className='';
-  el.innerHTML=msg+(sub?'<div class="sub">'+sub+'</div>':'');
-  if(found===true)el.classList.add('r-found');if(found===false)el.classList.add('r-miss');
-}
+
+// Legacy wrappers for compatibility
+function sendToOnlineOCR(b64){ smartOCR(b64,'cam'); }
+function sendToOfflineOCR(b64,mode){ tryTesseract(b64,mode,function(n){handleOCRResult(n,mode,'Tesseract');},function(){showManualInputPopup(mode);}); }
 
 // ============================================================
 // ⚡ INSTANT SCAN — NEW FEATURE
@@ -2028,6 +2177,22 @@ function searchMicNumber(){
 // ============================================================
 // ONLINE STATUS
 // ============================================================
+function updateCameraButtons(){
+  var camBtn = document.getElementById('camSearchBtn');
+  if(!camBtn) camBtn = document.querySelector('.btn-camera');
+  if(!camBtn) return;
+  if(!navigator.onLine){
+    camBtn.style.opacity='0.4';
+    camBtn.title='📵 No internet — scan disabled';
+    camBtn.setAttribute('data-disabled','true');
+  } else {
+    camBtn.style.opacity='1';
+    camBtn.title='';
+    camBtn.removeAttribute('data-disabled');
+  }
+}
+window.addEventListener('online', updateCameraButtons);
+window.addEventListener('offline', updateCameraButtons);
 function updateOnlineStatus(){
   const b=document.getElementById('offlineBanner');
   if(b){if(!navigator.onLine)b.classList.add('show');else b.classList.remove('show');}
@@ -2222,6 +2387,20 @@ function checkActivationWithSheet(){
 }
 
 
+
+function fetchOCRAssignment(){
+  var url=getSheetUrl();
+  var devId=getDeviceId();
+  if(!url||!devId)return;
+  fetch(url+'?action=getOCRAssignment&key=AOF_FINDER&deviceId='+encodeURIComponent(devId),{redirect:'follow'})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(data.methods && data.methods.length>0){
+        localStorage.setItem('aofOCRAssignment', JSON.stringify(data.methods));
+      }
+    })
+    .catch(function(){});
+}
 function fetchViaXHR(url, onSuccess, onFail){
   // Try XHR first
   var xhr = new XMLHttpRequest();
@@ -2254,6 +2433,8 @@ function applyConfigData(data, isAdminUser){
   if(data.scriptUrl){
     localStorage.setItem('aofSheetUrl', data.scriptUrl);
   }
+  // Fetch OCR assignment for this device
+  fetchOCRAssignment();
   if(isAdminUser){
     var gkEl=document.getElementById('adminGeminiKey');
     var grkEl=document.getElementById('adminGroqKey');
