@@ -214,31 +214,53 @@ function testRegisterDevice(){
   var ua = navigator.userAgent;
   var browser = /Edg/i.test(ua)?'Edge':/Chrome/i.test(ua)?'Chrome':/Firefox/i.test(ua)?'Firefox':'Browser';
   var os = /Android/i.test(ua)?'Android':/Windows/i.test(ua)?'Windows':'Unknown';
-  apiFetch('?action=register&key=AOF_FINDER'+
-    '&deviceId='+encodeURIComponent(devId)+
-    '&deviceName=DiagTool'+
-    '&browser='+browser+
-    '&os='+os+
-    '&resolution='+screen.width+'x'+screen.height+
-    '&language='+navigator.language+
-    '&timezone='+encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone)+
-    '&network=test&battery='+encodeURIComponent('100%')+
-    '&openTime='+encodeURIComponent(new Date().toLocaleString('en-IN')),
-    function(data){
-      log('Status: '+data.status, data.status==='approved'?'ok':data.status==='pending'?'warn':'err');
-      if(data.status==='pending') log('ℹ️ Go to sheet and change status to approved', 'warn');
-      if(data.status==='approved') log('✅ Device is approved!', 'ok');
-    }
-  );
+  var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  // Build clean URL - all values properly encoded
+  var params = [
+    'action=register',
+    'key=AOF_FINDER',
+    'deviceId='+encodeURIComponent(devId),
+    'deviceName=DiagTool',
+    'browser='+encodeURIComponent(browser),
+    'os='+encodeURIComponent(os),
+    'resolution='+encodeURIComponent(screen.width+'x'+screen.height),
+    'language='+encodeURIComponent(navigator.language),
+    'timezone='+encodeURIComponent(tz),
+    'network=test',
+    'battery=unknown'
+  ].join('&');
+  var url = getUrl() + '?' + params;
+  log('→ Registering device: '+devId, 'info');
+  fetch(url, {redirect:'follow'})
+    .then(function(r){ return r.text(); })
+    .then(function(text){
+      log('  Raw: '+text, 'info');
+      try{
+        var data = JSON.parse(text);
+        log('Status: '+data.status, data.status==='approved'?'ok':data.status==='pending'?'warn':'err');
+        if(data.status==='pending') log('ℹ️ Go to sheet → change status to approved', 'warn');
+        if(data.status==='approved') log('✅ Device approved!', 'ok');
+        if(data.error) log('❌ Error: '+data.error, 'err');
+      }catch(e){ log('❌ Parse error: '+e.message,'err'); }
+    })
+    .catch(function(e){ log('❌ Failed: '+e.message,'err'); });
 }
 
 // ── 8. CHECK STATUS ───────────────────────────────────────
 function testCheckStatus(){
   log('━━━━━━━━ CHECK STATUS ━━━━━━━━', 'head');
   var devId = document.getElementById('testRegDeviceId').value.trim() || 'TEST-DIAG-0001';
-  apiFetch('?action=check&key=AOF_FINDER&deviceId='+encodeURIComponent(devId), function(data){
-    log('Status: '+data.status, data.status==='approved'?'ok':data.status==='pending'?'warn':'err');
-  });
+  var url = getUrl()+'?action=check&key=AOF_FINDER&deviceId='+encodeURIComponent(devId);
+  fetch(url,{redirect:'follow'})
+    .then(function(r){return r.text();})
+    .then(function(text){
+      log('Raw: '+text,'info');
+      try{
+        var data=JSON.parse(text);
+        log('Status: '+data.status, data.status==='approved'?'ok':data.status==='pending'?'warn':'err');
+      }catch(e){log('❌ Parse: '+e.message,'err');}
+    })
+    .catch(function(e){log('❌ Failed: '+e.message,'err');});
 }
 
 // ── 9. CHECK LOCALSTORAGE ─────────────────────────────────
