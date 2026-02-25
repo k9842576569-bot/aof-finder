@@ -134,9 +134,16 @@ function testGetConfig(){
     log('scriptUrl : '+(data.scriptUrl ? '✅ PRESENT' : '❌ EMPTY'), data.scriptUrl?'ok':'err');
     if(data.debug) log('debug     : '+JSON.stringify(data.debug), 'info');
     // Save to localStorage
-    if(data.geminiKey){ localStorage.setItem('geminiApiKey',data.geminiKey); }
-    if(data.groqKey)  { localStorage.setItem('groqApiKey',data.groqKey); }
-    if(data.ocrKey)   { localStorage.setItem('ocrApiKey',data.ocrKey); }
+    if(data.geminiKey){ 
+      localStorage.setItem('geminiApiKey',data.geminiKey);
+      localStorage.setItem('aofGeminiKey',data.geminiKey);
+    }
+    if(data.groqKey){ 
+      localStorage.setItem('groqApiKey',data.groqKey);
+      localStorage.setItem('aofGroqKey',data.groqKey);
+    }
+    if(data.ocrKey){ localStorage.setItem('ocrApiKey',data.ocrKey); }
+    if(data.scriptUrl){ localStorage.setItem('aofSheetUrl',data.scriptUrl); }
     log('✅ Keys saved to localStorage!', 'ok');
   });
 }
@@ -215,7 +222,7 @@ function testRegisterDevice(){
     '&resolution='+screen.width+'x'+screen.height+
     '&language='+navigator.language+
     '&timezone='+encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone)+
-    '&network=test&battery=100%'+
+    '&network=test&battery='+encodeURIComponent('100%')+
     '&openTime='+encodeURIComponent(new Date().toLocaleString('en-IN')),
     function(data){
       log('Status: '+data.status, data.status==='approved'?'ok':data.status==='pending'?'warn':'err');
