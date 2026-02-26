@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>AOF Finder v6 - SUSINFO [BUILD 039]</title>
+<title>AOF Finder v6 - SUSINFO [BUILD 040]</title>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Segoe UI',Tahoma,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#0f3460 100%);min-height:100vh;display:flex;justify-content:center;padding:12px 10px 30px;}
@@ -310,7 +310,7 @@ textarea:focus{border-color:#2196F3;}
       <button class="pin-key del" onclick="pinDel()">⌫</button>
       <button class="pin-key zero" onclick="pinKey('0')">0</button>
     </div>
-    <div style="font-size:10px;color:#bbb;text-align:center;margin-top:8px;">SUSINFO • BUILD 039</div>
+    <div style="font-size:10px;color:#bbb;text-align:center;margin-top:8px;">SUSINFO • BUILD 040</div>
   </div>
 </div>
 
@@ -319,7 +319,7 @@ textarea:focus{border-color:#2196F3;}
   <div class="header" id="mainHeader" onclick="headerTap()">
     <h1>🔍 AOF Finder v6</h1>
     <p>SUSINFO — World Class Edition</p>
-    <p style="font-size:10px;color:#2196F3;font-weight:800;margin-top:2px;">BUILD 039 • 23-Feb-2026</p>
+    <p style="font-size:10px;color:#2196F3;font-weight:800;margin-top:2px;">BUILD 040 • 23-Feb-2026</p>
     <div class="tap-hint" id="tapHint"></div>
   </div>
   <div class="sync-banner" id="syncBanner"></div>
@@ -363,7 +363,7 @@ textarea:focus{border-color:#2196F3;}
       <div id="historyList"><div class="history-empty">No searches yet</div></div>
     </div>
   </div>
-  <div class="footer">Developed by <strong>SUSINFO</strong> • AOF Finder v6.0 • <strong style="color:#2196F3;">BUILD 039</strong></div>
+  <div class="footer">Developed by <strong>SUSINFO</strong> • AOF Finder v6.0 • <strong style="color:#2196F3;">BUILD 040</strong></div>
   <button onclick="sysConfigClick()" style="width:100%;margin-top:8px;padding:12px;border:2px dashed #ccc;border-radius:12px;background:#f8f9fa;color:#bbb;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;display:none;" id="adminConfigBtn2">⚙️ SYSTEM CONFIG</button>
 </div>
 
@@ -580,7 +580,7 @@ textarea:focus{border-color:#2196F3;}
     </div>
     <div class="settings-section">
       <div class="settings-section-title">ℹ️ App Info</div>
-      <div class="setting-row"><span class="setting-label">Version</span><span class="setting-value">v6.0 BUILD 039</span></div>
+      <div class="setting-row"><span class="setting-label">Version</span><span class="setting-value">v6.0 BUILD 040</span></div>
       <div class="setting-row"><span class="setting-label">Developer</span><span class="setting-value">SUSINFO</span></div>
       <div class="setting-row"><span class="setting-label">Max Records</span><span class="setting-value">2,00,000</span></div>
       <div class="setting-row"><span class="setting-label">Security</span><span class="setting-value">Device Approval</span></div>
@@ -633,6 +633,12 @@ textarea:focus{border-color:#2196F3;}
         <div style="display:flex;gap:6px;margin-top:4px;">
           <button class="setting-btn sbt-blue" onclick="saveAdminKey('ocr')" style="flex:1;padding:6px;">💾 SAVE</button>
           <button class="setting-btn sbt-red" onclick="clearAdminKey('ocr')" style="flex:1;padding:6px;">🗑 CLEAR</button>
+        </div>
+        <label class="setting-label" style="margin-top:8px;display:block;">🌟 OpenRouter Key:</label>
+        <input type="password" class="api-key-input-small" id="adminOpenRouterKey" placeholder="Paste OpenRouter API key (sk-or-v1-...)">
+        <div style="display:flex;gap:6px;margin-top:4px;">
+          <button class="setting-btn sbt-blue" onclick="saveAdminKey('openrouter')" style="flex:1;padding:6px;">💾 SAVE</button>
+          <button class="setting-btn sbt-red" onclick="clearAdminKey('openrouter')" style="flex:1;padding:6px;">🗑 CLEAR</button>
         </div>
         <div style="font-size:9px;color:#888;margin-top:2px;">Get free: ocr.space → Free API Key</div>
       </div>
@@ -951,7 +957,7 @@ function checkPin(){
     if(b1)b1.style.display='block';
     if(b2)b2.style.display='block';
     hideActivationScreen();
-    setPinError('🔑 Fetching keys...');
+    setPinError('🔑 Fetching keys from sheet...');
     loginSuccess(true, function(){
       setPinError('');
       showPinScreen(false);
@@ -1663,6 +1669,15 @@ function smartOCR(b64, mode, methodList, index){
       function(){ next(); }
     );
   }
+  else if(method === 'openrouter'){
+    var key = localStorage.getItem('openRouterKey')||'';
+    if(!key){ next(); return; }
+    showOcrStep('🌟 Trying OpenRouter AI...', mode);
+    tryOpenRouterOCR(b64, key,
+      function(num){ handleOCRResult(num, mode, 'OpenRouter AI'); },
+      function(){ next(); }
+    );
+  }
   else if(method === 'ocrspace'){
     var key = localStorage.getItem('ocrApiKey')||'';
     if(!key){ next(); return; }
@@ -1845,6 +1860,39 @@ function tryTesseract(b64, mode, onSuccess, onFail){
     s.onerror=function(){ onFail(); };
     document.head.appendChild(s);
   } else { runTess(); }
+}
+
+// ── OPENROUTER OCR ────────────────────────────────────────
+function tryOpenRouterOCR(b64, apiKey, onSuccess, onFail){
+  var base64Data = b64.replace(/^data:image\/[a-z]+;base64,/,'');
+  var body = JSON.stringify({
+    model:'qwen/qwen2.5-vl-72b-instruct:free',
+    messages:[{role:'user',content:[
+      {type:'text',text:'Read ONLY the 11-digit mobile number from this image. Return numbers only, no spaces, no other text.'},
+      {type:'image_url',image_url:{url:'data:image/jpeg;base64,'+base64Data}}
+    ]}],
+    max_tokens:50
+  });
+  fetch('https://openrouter.ai/api/v1/chat/completions',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'Authorization':'Bearer '+apiKey,
+      'HTTP-Referer':'https://k9842576569-bot.github.io/aof-finder/',
+      'X-Title':'AOF Finder'
+    },
+    body:body
+  })
+  .then(function(r){return r.json();})
+  .then(function(data){
+    try{
+      var text=data.choices[0].message.content;
+      var num=text.replace(/[^0-9]/g,'').slice(0,11);
+      if(num.length>=8) onSuccess(num);
+      else onFail();
+    }catch(e){ onFail(); }
+  })
+  .catch(function(){ onFail(); });
 }
 
 // Legacy wrappers for compatibility
@@ -2277,7 +2325,7 @@ function refreshDeviceList(){
         var devName=dev.deviceName||dev.name||'Unknown';
         var devInfo=dev.os?devName+' • '+dev.os:devName;
         var ocrCurrent = (dev.ocrMethods&&dev.ocrMethods.length>0) ? dev.ocrMethods.join(',') : 'auto';
-        var ocrOptions = ['auto','gemini','groq','ocrspace','tesseract',
+        var ocrOptions = ['auto','gemini','groq','openrouter','ocrspace','tesseract',
           'gemini,groq','gemini,ocrspace','gemini,groq,ocrspace',
           'gemini,groq,ocrspace,tesseract','groq,ocrspace','ocrspace,tesseract'];
         var ocrSelHtml = '<select id="ocr_'+dev.deviceId+'" onchange="saveOCRMethod(this,\'' + dev.deviceId + '\')" '+
@@ -2287,6 +2335,7 @@ function refreshDeviceList(){
               (o==='auto'?'🔄 Auto (All methods)':
                o==='gemini'?'🤖 Gemini only':
                o==='groq'?'🧠 Groq only':
+               o==='openrouter'?'🌟 OpenRouter (Free)':
                o==='ocrspace'?'🌐 OCR.space only':
                o==='tesseract'?'📵 Tesseract only':
                o==='gemini,groq'?'🤖+🧠 Gemini→Groq':
@@ -2483,6 +2532,9 @@ function applyConfigData(data, isAdminUser){
   }
   if(data.scriptUrl){
     localStorage.setItem('aofSheetUrl', data.scriptUrl);
+  }
+  if(data.openRouterKey){
+    localStorage.setItem('openRouterKey', data.openRouterKey);
   }
   // Fetch OCR assignment for this device
   fetchOCRAssignment();
